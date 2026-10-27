@@ -159,7 +159,8 @@
       "name": "Onboarding Coordinator (AI Agent)",
       "type": "@n8n/n8n-nodes-langchain.agent",
       "typeVersion": 1.9,
-      "position": [860, 100]
+      "position": [860, 100],
+      "onError": "continueErrorOutput"
     },
     {
       "parameters": {
@@ -379,7 +380,7 @@
     },
     {
       "parameters": {
-        "jsCode": "// Persist terminal state for job_id so future deliveries of the same job replay cleanly.\nconst wfStatic = $getWorkflowStaticData('global');\nif (!wfStatic.jobs) wfStatic.jobs = {};\nconst jobId = $json.job_id;\nif (jobId) {\n  wfStatic.jobs[jobId] = {\n    status: $json.status || 'completed',\n    result: {\n      team_lead: $json.team_lead,\n      necessary_accounts: $json.necessary_accounts,\n      welcome_message: $json.welcome_message\n    },\n    seen_at: wfStatic.jobs[jobId]?.seen_at || new Date().toISOString(),\n    terminal_at: new Date().toISOString()\n  };\n}\nreturn [{ json: { persisted: true, job_id: jobId } }];"
+        "jsCode": "// Persist terminal state for job_id so future deliveries of the same job replay cleanly.\n// NOTE: $json at this node is the backend callback HTTP response (which does NOT contain job_id).\n// Pull the original validated agent result from the upstream `Validate Output (Strict Schema)`\n// node explicitly, and job_id from the earlier `Idempotency Check (job_id)` node.\nconst wfStatic = $getWorkflowStaticData('global');\nif (!wfStatic.jobs) wfStatic.jobs = {};\n\nconst ctx = $('Idempotency Check (job_id)').item.json;\nconst validated = $('Validate Output (Strict Schema)').item.json;\nconst jobId = ctx.job_id;\n\nif (jobId) {\n  wfStatic.jobs[jobId] = {\n    status: 'completed',\n    result: {\n      team_lead: validated.team_lead,\n      necessary_accounts: validated.necessary_accounts,\n      welcome_message: validated.welcome_message\n    },\n    seen_at: wfStatic.jobs[jobId]?.seen_at || new Date().toISOString(),\n    terminal_at: new Date().toISOString()\n  };\n}\nreturn [{ json: { persisted: true, job_id: jobId, status: 'completed' } }];"
       },
       "id": "persist-completed",
       "name": "Persist Terminal State",
@@ -389,7 +390,7 @@
     },
     {
       "parameters": {
-        "jsCode": "const wfStatic = $getWorkflowStaticData('global');\nif (!wfStatic.jobs) wfStatic.jobs = {};\nconst jobId = $json.job_id;\nif (jobId) {\n  wfStatic.jobs[jobId] = {\n    status: 'failed',\n    error_code: $json.error_code || 'AGENT_PROCESSING_FAILED',\n    seen_at: wfStatic.jobs[jobId]?.seen_at || new Date().toISOString(),\n    terminal_at: new Date().toISOString()\n  };\n}\nreturn [{ json: { persisted: true, job_id: jobId, status: 'failed' } }];"
+        "jsCode": "// $json at this node is the backend callback HTTP response (no job_id).\n// Resolve job_id from the earlier `Idempotency Check (job_id)` node (always set).\n// error_code: prefer the output-validator result if present, otherwise fall back to the\n// mapped agent-error payload, otherwise AGENT_PROCESSING_FAILED.\nconst wfStatic = $getWorkflowStaticData('global');\nif (!wfStatic.jobs) wfStatic.jobs = {};\n\nconst ctx = $('Idempotency Check (job_id)').item.json;\nconst jobId = ctx.job_id;\n\nlet errorCode = 'AGENT_PROCESSING_FAILED';\ntry {\n  const vo = $('Validate Output (Strict Schema)').item?.json;\n  if (vo && vo.valid === false && typeof vo.error_code === 'string') {\n    errorCode = vo.error_code;\n  }\n} catch (e) { /* reached only via the agent-error branch; keep default */ }\ntry {\n  const ae = $('On Agent Error (map to failed)').item?.json;\n  if (ae && typeof ae.error_code === 'string') {\n    errorCode = ae.error_code;\n  }\n} catch (e) { /* reached only via the validator-fail branch; keep whatever we have */ }\n\nif (jobId) {\n  wfStatic.jobs[jobId] = {\n    status: 'failed',\n    error_code: errorCode,\n    seen_at: wfStatic.jobs[jobId]?.seen_at || new Date().toISOString(),\n    terminal_at: new Date().toISOString()\n  };\n}\nreturn [{ json: { persisted: true, job_id: jobId, status: 'failed', error_code: errorCode } }];"
       },
       "id": "persist-failed",
       "name": "Persist Failed State",
@@ -399,7 +400,7 @@
     },
     {
       "parameters": {
-        "content": "## Callback and failure handling\n\n- Success: POST `{employee_id,status:completed,team_lead,necessary_accounts,welcome_message}` with Bearer `INTERNAL_API_SECRET`.\n- Failure (schema violation, tool unavailable, LLM garbage, agent exception): POST `{employee_id,status:failed,error_code:AGENT_PROCESSING_FAILED}`.\n- Timeout 10 s. Follow-redirects disabled (avoids credential leaks).\n- Retry up to 5 × 3 s on transient errors — the backend accepts exact replays with `replayed:true` and 409s differing terminal results, which is correct behaviour.\n- Terminal state is persisted in workflow static data so a replayed `job_id` short-circuits.",
+        "content": "## Callback and failure handling\n\n- Success path: Validate Output → POST `{employee_id,status:completed,…}` with Bearer `INTERNAL_API_SECRET` → Persist Terminal State.\n- Validator-fail path: Validate Output (valid=false) → Callback: Failed → Persist Failed State.\n- Thrown agent/tool error path: Coordinator agent has `onError: continueErrorOutput`; its error output goes to `On Agent Error (map to failed)` → Callback: Failed → Persist Failed State.\n- Timeout 10 s. Follow-redirects disabled (avoids credential leaks).\n- Retry up to 5 × 3 s on transient errors — the backend accepts exact replays with `replayed:true` and 409s differing terminal results.\n- IMPORTANT: Persist nodes resolve `job_id` from `Idempotency Check (job_id)` and completed results from `Validate Output (Strict Schema)` via explicit `$('<node>').item.json` lookups — not from `$json`, which the preceding HTTP Request has overwritten with the backend callback response.",
         "height": 400,
         "width": 480,
         "color": 7
@@ -484,7 +485,8 @@
     },
     "Onboarding Coordinator (AI Agent)": {
       "main": [
-        [{ "node": "Validate Output (Strict Schema)", "type": "main", "index": 0 }]
+        [{ "node": "Validate Output (Strict Schema)", "type": "main", "index": 0 }],
+        [{ "node": "On Agent Error (map to failed)", "type": "main", "index": 0 }]
       ]
     },
     "Validate Output (Strict Schema)": {
