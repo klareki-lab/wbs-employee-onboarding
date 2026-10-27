@@ -1,0 +1,71 @@
+# Independent clean-clone installation. Always invoked by scripts/local.py.
+services:
+  db:
+    image: postgres:17-bookworm
+    environment:
+      POSTGRES_DB: onboarding
+      POSTGRES_USER: onboarding
+      POSTGRES_PASSWORD: ${DATABASE_PASSWORD:?Run local.py configure}
+    volumes: ["db:/var/lib/postgresql/data"]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U onboarding -d onboarding"]
+      interval: 3s
+      timeout: 3s
+      retries: 30
+  mailpit:
+    image: axllent/mailpit:v1.27
+    ports: ["127.0.0.1:${MAILPIT_PORT}:8025"]
+  api:
+    build:
+      context: ../..
+      dockerfile: backend/Dockerfile
+    environment:
+      NODE_ENV: development
+      DATABASE_URL: postgresql://onboarding:${DATABASE_PASSWORD}@db:5432/onboarding
+      APP_ORIGIN: http://localhost:${WEB_PORT}
+      INTERNAL_API_SECRET: ${INTERNAL_API_SECRET}
+      DEPARTMENTS_API_SECRET: ${DEPARTMENTS_API_SECRET}
+      N8N_ONBOARDING_WEBHOOK_SECRET: ${N8N_ONBOARDING_WEBHOOK_SECRET}
+      N8N_ONBOARDING_WEBHOOK_URL: ${WBS_DISPATCH_URL:-}
+      SMTP_MODE: ${SMTP_MODE}
+      SMTP_HOST: ${SMTP_HOST}
+      SMTP_PORT: ${SMTP_PORT}
+      SMTP_SECURE: ${SMTP_SECURE}
+      SMTP_USER: ${SMTP_USER:-}
+      SMTP_PASSWORD: ${SMTP_PASSWORD:-}
+      SMTP_FROM: ${SMTP_FROM}
+    ports: ["127.0.0.1:${API_PORT}:3001"]
+    depends_on:
+      db:
+        condition: service_healthy
+  n8n:
+    image: n8nio/n8n:2.41.7
+    environment:
+      N8N_ENCRYPTION_KEY: ${N8N_ENCRYPTION_KEY}
+      N8N_HOST: localhost
+      N8N_PORT: 5678
+      N8N_PROTOCOL: http
+      N8N_EDITOR_BASE_URL: http://localhost:${N8N_PORT}
+      N8N_WEBHOOK_URL: http://localhost:${N8N_PORT}/
+      N8N_SECURE_COOKIE: "false"
+      N8N_DIAGNOSTICS_ENABLED: "false"
+      N8N_VERSION_NOTIFICATIONS_ENABLED: "false"
+      N8N_TEMPLATES_ENABLED: "false"
+      N8N_BLOCK_ENV_ACCESS_IN_NODE: "true"
+      N8N_BLOCK_FILE_ACCESS_TO_N8N_FILES: "true"
+      N8N_ENFORCE_SETTINGS_FILE_PERMISSIONS: "true"
+      EXECUTIONS_DATA_SAVE_ON_SUCCESS: none
+      EXECUTIONS_DATA_SAVE_ON_ERROR: none
+      EXECUTIONS_DATA_SAVE_MANUAL_EXECUTIONS: "false"
+      GENERIC_TIMEZONE: Europe/Berlin
+    ports: ["127.0.0.1:${N8N_PORT}:5678"]
+    volumes: ["n8n:/home/node/.n8n"]
+  web:
+    build:
+      context: ../..
+      dockerfile: deploy/local/frontend.Dockerfile
+    ports: ["127.0.0.1:${WEB_PORT}:8080"]
+    depends_on: [api]
+volumes:
+  db:
+  n8n:
