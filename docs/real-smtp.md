@@ -1,3 +1,7 @@
+# Legacy developer-stack SMTP notes
+
+For independent installation use [YURI-SETUP.md](YURI-SETUP.md). Its installer configures and verifies Resend directly; the commands below target only the older fixed-name developer stack. Do not mix those stacks.
+
 # Employee Onboarding — real SMTP acceptance
 
 The primary acceptance path is now an invitation in the employee's actual personal inbox. Mailpit remains only for explicit regression tests; it is not proof of external delivery. The existing employee, completed AI result, HR account, database volume, and n8n setup are preserved. No Messe Hub mail settings, production sender, DNS/MX, production workflow or production deployment is changed.
@@ -67,7 +71,7 @@ This prints only sanitized verification status/error codes, never the password, 
 
 ## HR-controlled acceptance
 
-1. Sign in as the existing HR user and open `http://localhost:5173/hr/employees/71fac882-8236-4641-98d5-86ffd1b60ab1`.
+1. Sign in as the existing HR user and open `http://localhost:5173/hr/employees/<employee-id>`.
 2. Review the real AI result and the existing personal recipient address. **HR explicitly approves** using “HR-Freigabe erteilen” if not already approved. This existing employee is already approved; do not repeat or reset that decision. SMTP setup does not approve anyone.
 3. Select “Einladung senden” once. The backend independently enforces approval and uses only the personal address from that approved record. AI cannot select recipients.
 4. Check the returned/detail `delivery_status`. **`smtp_accepted` means accepted by the configured SMTP server, not final inbox delivery.** Confirm receipt in the employee's personal inbox and, if needed, use the provider's delivery/bounce log. Neither Mailpit contents nor an accepted SMTP response alone satisfies inbox acceptance.

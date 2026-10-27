@@ -9,10 +9,12 @@ from pathlib import Path
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--retry-job-id')
+parser.add_argument('--env-file', type=Path)
+parser.add_argument('--local-dir', type=Path)
 args = parser.parse_args()
 ROOT = Path(__file__).resolve().parents[2]
 os.chdir(ROOT)
-LOCAL = ROOT / 'workflows/.local'
+LOCAL = args.local_dir or ROOT / 'workflows/.local'
 BOOTSTRAP = LOCAL / 'bootstrap'
 BOOTSTRAP.mkdir(parents=True, exist_ok=True)
 LOCAL.chmod(0o700)
@@ -32,7 +34,7 @@ def private_write(path, value):
     path.write_text(value)
     path.chmod(0o600)
 
-path = ROOT / 'backend/.env'
+path = args.env_file or ROOT / 'backend/.env'
 env = read_env(path)
 updates = {}
 for key in ['DEPARTMENTS_API_SECRET', 'N8N_ONBOARDING_WEBHOOK_SECRET']:

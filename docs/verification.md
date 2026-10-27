@@ -1,43 +1,72 @@
-# Verification — 2026-10-27
+# Release-candidate verification — 2026-10-27
 
-Verified locally; no production deployment or live n8n workflow modification.
+Branch: `integration/mvp-v1`. Draft PR: [#4](https://github.com/klarekipro/wbs-employee-onboarding/pull/4). Local installation only; no merge, tag, VPS deployment or production infrastructure change.
+
+## Independent installation
+
+The portable installer was exercised with a **new Compose project**, `wbs-onboarding-verify`, empty PostgreSQL/n8n volumes, independent randomly generated database/bearer/encryption secrets, and alternate loopback ports (web 15173, API 13009, n8n 15681, Mailpit 18025). The existing developer project, accounts, employees, completed AI results and SMTP configuration were left untouched. No host Node.js dependency is needed by the installer; both applications build inside Docker.
+
+```sh
+python3 scripts/local.py --project wbs-onboarding-verify configure --mail-mode capture --web-port 15173 --api-port 13009 --n8n-port 15681 --mailpit-port 18025
+python3 scripts/local.py --project wbs-onboarding-verify up
+```
+
+The verification harness supplied an already authorized OpenAI key through a private environment path rather than exposing it in terminal output. Yuri supplies his own key through the hidden configure prompt. External SMTP was checked separately using the independently authorized private Resend configuration; no additional real email was sent by handover verification.
 
 | Check | Result |
 |---|---|
-| TypeScript build (`npm run build`) | Passed |
-| Source formatting (`npm run format:check`) | Passed |
-| Dependency audit | Zero known vulnerabilities after upgrading Nodemailer to 10.2.1 |
-| PostgreSQL 17 migration | Applied successfully in dedicated local development and test databases |
-| Migration repeat run | Passed without reapplying existing migration |
-| Focused HTTP/PostgreSQL/Mailpit test | Passed; real database transactions and SMTP capture, local mock webhook |
-| Docker production artifact | Multi-stage image built; runs as non-root node user |
-| Docker startup | Migrations and API startup succeeded |
-| Container smoke | HR CLI provisioning, login, employee creation/detail, n8n unavailable and approval gating passed |
+| Frontend Docker build | Passed: clean `npm ci`, TypeScript and Vite production build |
+| Backend Docker build | Passed: clean dependencies, TypeScript build, non-root runtime |
+| New PostgreSQL schema/migrations | Both `001_initial.sql` and `002_job_attempt_history.sql` applied; only onboarding schema in fresh isolated DB |
+| New n8n import | Credentials + onboarding + connectivity workflows imported; both published automatically |
+| Webhook security | Missing/wrong credential → 403; authenticated `{}` → 400 |
+| Read-only department lookup | Authenticated local n8n → backend returned 3 fictional departments |
+| Callback connectivity | Authenticated empty callback → 400 `VALIDATION_ERROR`; no employee mutation |
+| Built frontend proxy | Application HTTP 200; unauthenticated same-origin `/api/auth/me` → 401 |
+| Real external SMTP | Resend authentication and mandatory TLS/certificate verification passed; no email sent by verification |
+| Routine `up` | Repeat startup retains workflow imports/history, database/accounts and generated secrets; no reimport |
 
-Critical test assertions cover unauthenticated HR rejection, separate department read authentication, CSRF and Origin rejection, malformed employee input, concurrent duplicate submission returning one employee/job, conflicting duplicate rejection, approval/send gating, callback transition rejection before dispatch, webhook dispatch acceptance, completed callback, idempotent callback replay, conflicting callback rejection, idempotent HR approval, concurrent sends producing one invitation, Mailpit SMTP acceptance, token hash storage, public validation, expiry rejection, username conflict rollback, concurrent activation with one success, consumed-token rejection, Argon2id password storage, employee login/profile, employee rejection from HR routes, dashboard placeholders, logout and session invalidation.
+## Real AI and synthetic end-to-end test
 
-Local API port 3001 was already occupied, so the packaged container smoke ran on **localhost:3009** through the configurable `API_PORT`; the pre-existing service was left running. PostgreSQL and Mailpit use the isolated `wbs-employee-onboarding` Compose project. Tests use `onboarding_test`, and no unrelated schemas are touched.
+The fresh stack registered a **synthetic** employee (`Demo Colleague`, fictional IT department and role, reserved `example.invalid` capture address) using a randomized test HR password. No personal employee identities or keys appear in this public report.
 
-Not verified: real n8n agents/workflow, external inbox delivery, production HTTPS/proxy routing, or Hetzner deployment. These require newly provisioned workflows, credentials and separately authorized deployment configuration. SMTP acceptance is never represented as final inbox delivery.
+- Registration through the built frontend's same-origin proxy returned a new record; repeated identical registration reused the same employee/job. No duplicate employee was created.
+- Approval and invitation requests before completion returned 409.
+- Automatic worker dispatched the job without an employee filter or manual dispatch command; completion occurred on **attempt 1**.
+- Local n8n **execution 3** emitted real OpenAI model-generated events for Coordinator, Info Agent and Welcome Agent, plus finished events for `departments_api`, `onboarding_info`, `welcome_announcement`, strict validation, `Callback: Completed` and `Persist Terminal State`, followed by workflow success. No mock callback or synthetic completion was injected.
+- PostgreSQL independently persisted the completed AI result. Department lead matched the fictional IT registry and the accounts array had three entries. No approval or invitation occurred automatically.
+- The isolated synthetic test then explicitly performed HR approval and invitation through the protected API. Exactly one invitation was captured in **that stack's Mailpit**, with the configured `http://localhost:15173` activation origin.
+- Activation succeeded once; reuse returned 410. Employee login returned the employee role and matching profile, HR API access returned 403, the dashboard exposed four placeholder areas, logout returned success and `/auth/me` then returned 401.
+- This proves real AI execution plus a captured invitation/activation flow. It does **not** claim a new real inbox delivery or a new real-inbox activation during this handover. Earlier owner acceptance confirmed real Resend delivery and activation in the original installation; Yuri must repeat that acceptance using his own authorized sender/recipient.
 
-## Owner-authorized real AI test — 2026-10-27
+## Automated suites
 
-Existing employee `71fac882-8236-4641-98d5-86ffd1b60ab1`, same job `c4007247-e99e-4a31-8eb4-0f4462648996`: completed via authenticated backend callback in local n8n execution **14**. Node-finished event metadata confirms Coordinator, Info Agent, department HTTP tool, Welcome Agent, output validator, completed callback and terminal persistence. Result team lead/accounts exactly match the department registry; German welcome text is persisted.
+Backend checks ran in a disposable Linux Node 24 container, using a dedicated `onboarding_test` database inside the new verification project. Mailpit was addressed over that project's private network via `MAILPIT_API_URL`; SMTP remained capture/disabled for test fixtures. No real-provider calls occurred in these automated backend suites.
 
-Initial execution **11** failed before successful model initialization because OpenAI Chat Model v1.2 requires a `model.value` resource locator. Exports/rendering were corrected. The failed callback and failed n8n dedup record were archived, preserving the same employee/job IDs and cumulative attempt count (2). Migration and guarded recovery tests passed in `onboarding_test`; build passed.
+```text
+npm run build                 PASS
+npm run format:check          PASS
+npx tsx src/migrate.ts         PASS (001 + 002)
+npm test                      PASS: 3 tests, 0 failures, 0 skipped (~10.65 s)
+```
 
-Read-only verification: employee status pending, approved_at/approved_by null, no invitations and no employee account. Existing HR account tessa preserved; total employee count remains 2. Chrome shows completed processing and enabled HR approval, with invitation sending disabled. No automatic approval, invitation or external account provisioning was performed for this employee. Production/Messe Hub untouched.
+The three integration tests cover independent HR/employee session jars, activation/login/logout, password rotation and session revocation, role/employee isolation, Origin/CSRF enforcement, automatic second-employee dispatch, simulated failure/retry with stable job IDs, duplicate registration, callback validation/idempotency, concurrent invitation/account creation and token one-time/expiry behavior. Test databases are guarded by the `_test` suffix.
 
-## Real SMTP preparation — owner configuration pending
+Frontend checks:
 
-Added a separate SMTP overlay/private env file and no-message verification command. Real mode requires credentials, an authorized real From address and TLS/certificate validation even under local development. Sending now defaults to disabled; Mailpit is opt-in only for regression fixtures. TypeScript and focused regression checks passed. External mode refused a plaintext Mailpit connection with ETLS before authentication; disabled mode refused delivery. No real-provider connectivity or inbox delivery is claimed because the independent host/sender/credentials are not configured. HR approval for the completed employee has since been recorded at 2026-10-27 17:04 UTC; that approval and the completed AI result are preserved, with zero invitations. See real-smtp.md for exact owner steps and the localhost activation limitation.
+```text
+npm run build                 PASS (TypeScript + Vite)
+npm test                      PASS: 29 tests, 0 failures, 0 skipped
+```
 
-## Employee login / role routing correction
+They cover auth initialization races, account switching, activation-to-login identity, role routing, logout races, credentials/errors, German status labels, processing/terminal polling eligibility, approval/send gates and form validation. UI polling is read-only; it cannot approve or send. Authenticated visual HR acceptance remains an operator/browser check rather than an assertion based only on unit tests.
 
-Confirmed the activated employee's stored username differs from the shorter username used in the failed login; the real Vite login request returned 401 INVALID_CREDENTIALS without creating a session. Role mapping is employee with correct employee linkage. Fixed the misleading expired-session message, implicit HR redirect on the login page after activation, late auth-response/CSRF races and generic localhost cookie naming. Added an explicit local password-rotation path for the exposed employee credential, with no automatic change to the real password.
+## Security and remaining limits
 
-28 frontend tests and frontend/backend builds passed. Real HTTP auth-only regression passed in onboarding_auth_test with email disabled, exercising independent HR/employee jars, activation-to-login, role/employee isolation, login rotation, CSRF/Origin, stale-session logout and password-rotation/session-revocation isolation. Normal Chrome protected routes redirect guests to login. Native Incognito automation is unavailable due Computer Use permissions; real password rotation and authenticated Incognito acceptance remain owner actions. See authentication.md. Existing SMTP, employees, AI results, invitations and HR account preserved; no additional invitation send.
-
-## Automatic second-employee dispatch regression
-
-Removed the controlled-test employee filter from worker, configuration, Compose and bootstrap. The independent onboarding_dispatch_test HTTP/PostgreSQL regression passes: first completion, second registration, automatic worker claim, retry on a simulated 503 using the same job/idempotency key, validated callback, unchanged first result, no duplicate registration and no approval/invitation. SMTP is disabled and orchestration is mocked only in this isolated regression. Frontend tests (29) and backend/frontend builds pass. After explicit owner authorization, the updated API was rebuilt/recreated locally with the existing n8n and real SMTP overlays. The worker automatically claimed the existing second job and completed it on attempt 1 via real n8n execution 18 and an authenticated callback (2026-10-27 19:28:51 UTC). Coordinator, Info Agent, department tool, Welcome Agent, validation and terminal persistence all have successful execution events. PostgreSQL confirms the stored result and matching department lead. The employee is still pending/unapproved with zero invitations. No new employee or job was created; the first activated employee and completed result remain preserved. The old fictional smoke job was also recovered automatically. Backend/frontend HTTP 200; webhook authentication/invalid-payload preflight passed; external Resend unchanged. Frontend tests rerun: 29 passed. UI approval eligibility and polling are covered by tests/source; authenticated visual HR acceptance remains an owner check because the connected browser profile is employee-authenticated. Automatic dispatch is now enabled for future local HR registrations; no production changes or merge.
+- Local install config, n8n plaintext bootstrap artifacts, encryption keys, provider keys and all `.env*` secrets are Git-ignored and excluded from Docker build contexts. No shared HR account/password is shipped. Database passwords and bearer/encryption secrets are generated independently per install.
+- Current documentation is sanitized of previous real employee identities, account usernames and installation-specific employee/job IDs. Earlier commits retain previously published documentation; no Git history rewrite was performed. Owner privacy review of that historical documentation is a release consideration before broader redistribution/tagging.
+- AI prompt construction excludes personal email, passwords, session credentials and invitation tokens. Local event metadata and backend state prove completion; execution payload retention is disabled in n8n.
+- Host verification used macOS with Docker Desktop/Linux containers. Native Windows PowerShell/ACLs and a native Linux host were **not executed** here; their Python/Docker commands are documented but require platform acceptance. Linux application/container builds and tests passed.
+- No public hosting/tunnel, remote-device localhost invitation access, corporate account provisioning or non-placeholder employee content is claimed.
+- Provider access/billing, verified sender authorization and actual recipient inbox receipt are operator prerequisites/acceptance checks. SMTP auth success does not prove final delivery.
+- The release remains a draft candidate. `v1.0.0` is proposed only after owner approval; no tag or merge was created.

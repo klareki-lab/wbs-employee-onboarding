@@ -1,6 +1,6 @@
 # WBS Employee Onboarding — n8n workflows (MVP v1)
 
-Importable, **unpublished** n8n workflows for the WBS Employee Onboarding Assistant. These workflows are the n8n side of the contract defined in `feat/backend:docs/integration.md` and `docs/api-contract.md` and the design in `workflows/ARCHITECTURE.md`.
+Importable, **unpublished** n8n workflows for the WBS Employee Onboarding Assistant. These workflows are the n8n side of the contract defined in `docs/integration.md` and `docs/api-contract.md` and the design in `workflows/ARCHITECTURE.md`.
 
 - Target n8n version: **2.41.7** (self-hosted).
 - Live deployment: **do not activate** on the production n8n host. These files are for import, review and local inspection only.
@@ -8,7 +8,7 @@ Importable, **unpublished** n8n workflows for the WBS Employee Onboarding Assist
 
 ## Isolated local integration
 
-Local n8n can now run at **http://localhost:5681** without exposing the backend or touching production. See [local-n8n.md](../docs/local-n8n.md) for the verified bootstrap, credential storage, connection probe, and automatic-dispatch bootstrap/observation command. The employee workflow stays unpublished until an onboarding-authorized OpenAI key passes a model/tool-call preflight.
+For an independent complete installation use [YURI-SETUP.md](../docs/YURI-SETUP.md). The portable launcher creates local n8n at **http://localhost:5681** (configurable), imports credential references, publishes both workflows, authenticates preflight and enables automatic dispatch. No employee must exist beforehand and no manual JSON edits are needed. Source exports are inactive until the installer publishes them locally. See [local-n8n.md](../docs/local-n8n.md) for security/recovery notes. The older manual instructions below are optional workflow-developer references, not the clean-install path.
 
 ## Files
 
@@ -134,7 +134,7 @@ Three distinct failure paths, all funnelled into a single `Callback: Failed` →
 
 Known terminal duplicates short-circuit to `200 replayed` before any agent runs. Callbacks are retried up to 5 × 3 s on transient network errors; the backend accepts identical terminal replays with `replayed:true` and rejects differing terminal results with `409 CALLBACK_CONFLICT`.
 
-**Residual exposure.** If a thrown error happens inside a sub-agent before the Coordinator surfaces it (unusual, but possible with aggressive abort behaviour from the underlying LangChain tool invocation), the Coordinator may still return a plausible JSON — in that case the deterministic `Validate Output` catches schema violations and routes to Callback: Failed. We do not claim to cover n8n engine-level crashes that terminate the execution process; those leave the backend in `awaiting_result` until an operator resets the job via the SQL recipe in `feat/backend:docs/integration.md`.
+**Residual exposure.** If a thrown error happens inside a sub-agent before the Coordinator surfaces it (unusual, but possible with aggressive abort behaviour from the underlying LangChain tool invocation), the Coordinator may still return a plausible JSON — in that case the deterministic `Validate Output` catches schema violations and routes to Callback: Failed. We do not claim to cover n8n engine-level crashes that terminate the execution process; those leave the backend in `awaiting_result` until an operator resets the job via the SQL recipe in `docs/integration.md`.
 
 ## Security posture
 

@@ -2,6 +2,8 @@
 
 Responsive German-first React + TypeScript frontend with HR, invitation activation and employee portal. Visual language inspired by the Messe Hub palette, with **no shared backend, database, credentials, or code dependency**. No deployment performed and no connection to Messe Hub production.
 
+For the complete Docker-based application without host Node.js, follow [YURI-SETUP.md](../docs/YURI-SETUP.md). The instructions below are optional frontend-only development commands.
+
 ## Quick start
 
 Requires Node.js **20.19+** or **22.12+** and npm.

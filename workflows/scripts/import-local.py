@@ -1,12 +1,17 @@
 #!/usr/bin/env python3
 """Import only this project's local workflow/credentials; production is never contacted."""
 import json
+import argparse
 import subprocess
 from pathlib import Path
 
 ROOT=Path(__file__).resolve().parents[2]
-LOCAL=ROOT/'workflows/.local/bootstrap'
-CONTAINER='wbs-employee-onboarding-n8n-1'
+parser=argparse.ArgumentParser()
+parser.add_argument('--bootstrap-dir',type=Path,default=ROOT/'workflows/.local/bootstrap')
+parser.add_argument('--container',default='wbs-employee-onboarding-n8n-1')
+args=parser.parse_args()
+LOCAL=args.bootstrap_dir
+CONTAINER=args.container
 
 def run(args, data=None):
     result=subprocess.run(['docker','exec','-i',CONTAINER,*args],input=data,capture_output=True)

@@ -1,3 +1,7 @@
+# Legacy developer backend setup
+
+For a clean, complete local installation (frontend, backend, n8n and Resend), follow [YURI-SETUP.md](YURI-SETUP.md). The developer commands below are optional and use a different Compose project.
+
 # Employee Onboarding backend MVP v1
 
 Node.js 24, TypeScript, Express 5, PostgreSQL 17. All tables live in `employee_onboarding`; migrations never reference `trade_fair`. Departments and their team leads are **fictional demo data**. No external accounts or corporate mailboxes are created.

@@ -203,14 +203,18 @@ test("real PostgreSQL + SMTP onboarding, concurrency and authorization", async (
       1,
     );
     const list = await (
-      await fetch("http://localhost:8025/api/v1/messages")
+      await fetch(
+        `${process.env.MAILPIT_API_URL ?? "http://localhost:8025"}/api/v1/messages`,
+      )
     ).json();
     const message = list.messages.find((m: any) =>
       m.To.some((to: any) => to.Address === body.personal_email),
     );
     assert.ok(message);
     const captured = await (
-      await fetch(`http://localhost:8025/api/v1/message/${message.ID}`)
+      await fetch(
+        `${process.env.MAILPIT_API_URL ?? "http://localhost:8025"}/api/v1/message/${message.ID}`,
+      )
     ).json();
     const link = captured.Text.match(
       /http:\/\/localhost:5173\/activate#[^\s]+/,

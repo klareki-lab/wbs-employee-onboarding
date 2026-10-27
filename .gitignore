@@ -6,3 +6,8 @@ coverage/
 !.env.example
 .DS_Store
 *.log
+
+# Independent installer secrets and bootstrap artifacts (all platforms).
+.local-install/
+__pycache__/
+*.pyc
