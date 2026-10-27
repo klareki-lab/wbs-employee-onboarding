@@ -45,7 +45,10 @@ export function createApp() {
         status: "ok",
         integrations: {
           n8n: n8nConfigured ? "configured" : "unavailable",
-          email: config.SMTP_HOST ? "configured" : "unavailable",
+          email:
+            config.SMTP_HOST && config.SMTP_MODE !== "disabled"
+              ? "configured"
+              : "unavailable",
         },
       },
     });

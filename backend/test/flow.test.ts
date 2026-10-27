@@ -11,6 +11,7 @@ test("real PostgreSQL + SMTP onboarding, concurrency and authorization", async (
     !new URL(process.env.DATABASE_URL).pathname.endsWith("_test")
   )
     throw new Error("Use a dedicated database whose name ends in _test");
+  process.env.SMTP_MODE = "capture"; // Explicit isolated test capture, never real acceptance mail.
   const webhook = createServer((req, res) => {
     assert.equal(
       req.headers.authorization,

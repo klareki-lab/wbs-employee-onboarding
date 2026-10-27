@@ -2,6 +2,8 @@
 
 Branch: `integration/mvp-v1`; Draft PR #4. This configuration uses only the isolated `wbs-employee-onboarding` Docker Compose project. Messe Hub and production resources are untouched.
 
+Real-inbox acceptance uses the separate [SMTP overlay and credentials](real-smtp.md). Local sending stays disabled until that configuration passes verification; Mailpit remains only for explicit tests.
+
 ## Current local addresses
 
 - Frontend: **http://localhost:5173/login**

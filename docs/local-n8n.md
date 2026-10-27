@@ -7,7 +7,7 @@ The safe connection is a new, isolated n8n 2.41.7 container on the existing **on
 - Local n8n: http://localhost:5681, with a dedicated `onboarding_n8n` volume and encryption key.
 - A published **connectivity-only** workflow rejects unsigned requests with 403, reads all three departments using the independent read-only credential, and reaches the authenticated callback endpoint.
 - The callback probe sends `{}` and confirms HTTP 400 `VALIDATION_ERROR`, demonstrating authentication and routing without changing any employee or onboarding job.
-- Backend health is `ok`; Mailpit HTTP API is reachable and the backend SMTP adapter's `verify()` succeeds. No invitation for the authorized employee has been sent.
+- Backend health is `ok`. Real-inbox acceptance now follows [real-smtp.md](real-smtp.md); delivery is disabled until independent SMTP settings pass verification. No invitation for the authorized employee has been sent.
 - Existing employee **Sergii Tytov**, ID `71fac882-8236-4641-98d5-86ffd1b60ab1`, has job `c4007247-e99e-4a31-8eb4-0f4462648996`. It is now `completed` after the reviewed model-initialization failure was corrected. The same job has two dispatch attempts, with the first failed result retained in `attempt_history`. The employee is still pending HR approval. No duplicate employee has been created.
 - The earlier smoke-test employee is preserved separately and excluded by the selected-employee worker scope.
 - **Real AI processing verified:** local execution **14** ran the Coordinator, `onboarding_info`, `departments_api`, and `welcome_announcement`, then output validation, `Callback: Completed`, and terminal persistence. The authenticated callback is stored in PostgreSQL. Team lead Sarah Miller and GitHub/Google Workspace/Jira match the department registry. Chrome shows HR approval enabled; sending remains disabled until HR approves. No approval or invitation was performed for this employee.
@@ -38,7 +38,7 @@ The command observes the job for up to 45 seconds; slow AI processing may contin
 
 ## Complete the demonstration
 
-Once the existing employee shows `completed`, sign in as the existing HR user, open that employee's detail page, approve the invitation, and select send. The backend checks real processing completion and explicit HR approval. Confirm `smtp_accepted` and open the captured German invitation at **http://localhost:8025**. SMTP acceptance means Mailpit capture, not external inbox delivery.
+Once the independent real SMTP adapter is configured and verified per [real-smtp.md](real-smtp.md), sign in as the existing HR user, review the completed employee, explicitly approve, and select send. The backend enforces processing completion and HR approval. Confirm `smtp_accepted`, then verify the German invitation in the employee's real personal inbox. SMTP acceptance is not final inbox delivery; Mailpit is no longer the primary acceptance path.
 
 The employee must choose their own username/password on the activation page. Do not generate an employee password, reveal the activation token in logs, or create a corporate mailbox. Activate once, sign in as the employee and verify the dashboard. Activation credential entry is an owner/employee interaction, not an AI-generated credential step.
 

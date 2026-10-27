@@ -2,6 +2,8 @@
 
 Node.js 24, TypeScript, Express 5, PostgreSQL 17. All tables live in `employee_onboarding`; migrations never reference `trade_fair`. Departments and their team leads are **fictional demo data**. No external accounts or corporate mailboxes are created.
 
+Real-inbox acceptance now uses the separate [real SMTP setup](real-smtp.md). Sending defaults to disabled; Mailpit is an explicit regression-test adapter, not the primary acceptance path.
+
 ## Local startup
 
 From the repository root:
@@ -58,6 +60,7 @@ npm run dev
 | `DEPARTMENTS_API_SECRET` | Optional independent bearer credential, at least 32 characters. Without it the read-only department API returns 503. Does not grant callback access. |
 | `N8N_ONBOARDING_WEBHOOK_URL` | Optional new onboarding workflow URL. HTTPS in production. Unset means unavailable, not completed. |
 | `N8N_ONBOARDING_WEBHOOK_SECRET` | Required with webhook URL, at least 32 characters; separate outbound bearer credential. |
+| `SMTP_MODE` | `disabled` by default; `external` for real SMTP with mandatory TLS; `capture` only for explicit local tests. |
 | `SMTP_HOST` | Optional; unset means email unavailable. Compose always uses Mailpit. |
 | `SMTP_PORT`, `SMTP_SECURE` | 1025, false for Mailpit; typically 587/false (STARTTLS) or 465/true in production. |
 | `SMTP_USER`, `SMTP_PASSWORD` | Provider-specific, optional in local capture mode. |
@@ -80,7 +83,7 @@ export DATABASE_URL=postgresql://onboarding:onboarding_local_only@localhost:5432
 export INTERNAL_API_SECRET="$(openssl rand -hex 32)"
 export DEPARTMENTS_API_SECRET="$(openssl rand -hex 32)"
 export N8N_ONBOARDING_WEBHOOK_SECRET="$(openssl rand -hex 32)"
-export SMTP_HOST=localhost SMTP_PORT=1025
+export SMTP_MODE=capture SMTP_HOST=localhost SMTP_PORT=1025
 npm run migrate
 npm run migrate
 npm run build

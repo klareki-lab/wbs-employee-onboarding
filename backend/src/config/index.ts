@@ -12,6 +12,7 @@ const schema = z.object({
   N8N_ONBOARDING_WEBHOOK_SECRET: z.string().min(32).optional(),
   INTERNAL_API_SECRET: z.string().min(32),
   DEPARTMENTS_API_SECRET: z.string().min(32).optional(),
+  SMTP_MODE: z.enum(["capture", "external", "disabled"]).default("disabled"),
   SMTP_HOST: z.string().optional(),
   SMTP_PORT: z.coerce.number().int().default(1025),
   SMTP_SECURE: z.enum(["true", "false"]).default("false"),
@@ -36,3 +37,19 @@ if (
   throw new Error("HTTPS required in production");
 if (new URL(config.APP_ORIGIN).origin !== config.APP_ORIGIN)
   throw new Error("APP_ORIGIN must be an exact origin without trailing slash");
+
+if (config.SMTP_MODE === "external") {
+  if (
+    !config.SMTP_HOST ||
+    !config.SMTP_USER ||
+    !config.SMTP_PASSWORD ||
+    config.SMTP_FROM.endsWith(".invalid")
+  ) {
+    throw new Error(
+      "External SMTP requires a host, dedicated username/password and an authorized real sender",
+    );
+  }
+  if (config.SMTP_PORT === 465 && config.SMTP_SECURE !== "true") {
+    throw new Error("SMTP port 465 requires implicit TLS (SMTP_SECURE=true)");
+  }
+}
