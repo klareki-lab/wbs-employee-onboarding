@@ -12,7 +12,10 @@
       "name": "Sticky: Overview",
       "type": "n8n-nodes-base.stickyNote",
       "typeVersion": 1,
-      "position": [-1200, -200]
+      "position": [
+        -1200,
+        -200
+      ]
     },
     {
       "parameters": {
@@ -22,24 +25,37 @@
         "options": {
           "rawBody": false,
           "ignoreBots": true
-        }
+        },
+        "authentication": "headerAuth"
       },
       "id": "webhook-in",
       "name": "Webhook (Onboarding In)",
       "type": "n8n-nodes-base.webhook",
       "typeVersion": 2,
-      "position": [-600, 100],
-      "webhookId": "wbs-onboarding-mvp-v1"
+      "position": [
+        -600,
+        100
+      ],
+      "webhookId": "07e1c5e3-8cf5-5e45-8736-486b0f0dc1b1",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "REPLACE_WEBHOOK_CREDENTIAL_ID",
+          "name": "Onboarding Webhook Secret (Header Auth)"
+        }
+      }
     },
     {
       "parameters": {
-        "jsCode": "// Deterministic header + body validation. No LLM involvement.\n// Reads Authorization and Idempotency-Key headers. Validates body schema.\n// Fails fast with structured error used by downstream branches.\n\nconst BEARER_SECRET = $env.N8N_ONBOARDING_WEBHOOK_SECRET || '';\nconst item = $input.first();\nconst headers = item.json.headers || {};\nconst body = item.json.body || {};\n\nconst normalizedAuth = (headers['authorization'] || headers['Authorization'] || '').trim();\nconst idemKey = (headers['idempotency-key'] || headers['Idempotency-Key'] || '').trim();\n\nconst isUuid = (v) =>\n  typeof v === 'string' &&\n  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(v);\n\nconst errors = [];\n\nif (!BEARER_SECRET) {\n  errors.push({ path: 'env.N8N_ONBOARDING_WEBHOOK_SECRET', message: 'secret not configured' });\n} else if (normalizedAuth !== `Bearer ${BEARER_SECRET}`) {\n  errors.push({ path: 'headers.authorization', message: 'invalid bearer' });\n}\n\nif (body.event !== 'employee.onboarding.requested') {\n  errors.push({ path: 'body.event', message: 'unexpected event' });\n}\nif (!isUuid(body.job_id)) errors.push({ path: 'body.job_id', message: 'invalid uuid' });\nif (!isUuid(body.employee_id)) errors.push({ path: 'body.employee_id', message: 'invalid uuid' });\nif (idemKey !== body.job_id) errors.push({ path: 'headers.idempotency-key', message: 'must equal body.job_id' });\n\nconst strField = (name, min = 1, max = 100) => {\n  const v = body[name];\n  if (typeof v !== 'string' || v.trim().length < min || v.length > max) {\n    errors.push({ path: `body.${name}`, message: `string ${min}-${max}` });\n  }\n};\nstrField('first_name');\nstrField('last_name');\nstrField('department');\nstrField('role');\n\nif (!/^\\d{4}-\\d{2}-\\d{2}$/.test(body.start_date || '')) {\n  errors.push({ path: 'body.start_date', message: 'YYYY-MM-DD' });\n}\nif (!/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(body.personal_email || '')) {\n  errors.push({ path: 'body.personal_email', message: 'invalid email' });\n}\n\nif (errors.length > 0) {\n  return [{ json: { valid: false, errors, employee_id: body.employee_id || null, job_id: body.job_id || null } }];\n}\n\n// Return a sanitised payload. personal_email is kept out of agent prompts downstream.\nreturn [{\n  json: {\n    valid: true,\n    job_id: body.job_id,\n    employee_id: body.employee_id,\n    first_name: body.first_name.trim(),\n    last_name: body.last_name.trim(),\n    department: body.department.trim(),\n    role: body.role.trim(),\n    start_date: body.start_date,\n    personal_email_present: Boolean(body.personal_email)\n  }\n}];"
+        "jsCode": "// Bearer authentication is enforced by the Webhook Header Auth credential before this node.\n// Deterministic header + body validation. No LLM involvement.\n// Reads Authorization and Idempotency-Key headers. Validates body schema.\n// Fails fast with structured error used by downstream branches.\n\nconst item = $input.first();\nconst headers = item.json.headers || {};\nconst body = item.json.body || {};\n\nconst idemKey = (headers['idempotency-key'] || headers['Idempotency-Key'] || '').trim();\n\nconst isUuid = (v) =>\n  typeof v === 'string' &&\n  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(v);\n\nconst errors = [];\n\nif (body.event !== 'employee.onboarding.requested') {\n  errors.push({ path: 'body.event', message: 'unexpected event' });\n}\nif (!isUuid(body.job_id)) errors.push({ path: 'body.job_id', message: 'invalid uuid' });\nif (!isUuid(body.employee_id)) errors.push({ path: 'body.employee_id', message: 'invalid uuid' });\nif (idemKey !== body.job_id) errors.push({ path: 'headers.idempotency-key', message: 'must equal body.job_id' });\n\nconst strField = (name, min = 1, max = 100) => {\n  const v = body[name];\n  if (typeof v !== 'string' || v.trim().length < min || v.length > max) {\n    errors.push({ path: `body.${name}`, message: `string ${min}-${max}` });\n  }\n};\nstrField('first_name');\nstrField('last_name');\nstrField('department');\nstrField('role');\n\nif (!/^\\d{4}-\\d{2}-\\d{2}$/.test(body.start_date || '')) {\n  errors.push({ path: 'body.start_date', message: 'YYYY-MM-DD' });\n}\nif (!/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(body.personal_email || '')) {\n  errors.push({ path: 'body.personal_email', message: 'invalid email' });\n}\n\nif (errors.length > 0) {\n  return [{ json: { valid: false, errors, employee_id: body.employee_id || null, job_id: body.job_id || null } }];\n}\n\n// Return a sanitised payload. personal_email is kept out of agent prompts downstream.\nreturn [{\n  json: {\n    valid: true,\n    job_id: body.job_id,\n    employee_id: body.employee_id,\n    first_name: body.first_name.trim(),\n    last_name: body.last_name.trim(),\n    department: body.department.trim(),\n    role: body.role.trim(),\n    start_date: body.start_date,\n    personal_email_present: Boolean(body.personal_email)\n  }\n}];"
       },
       "id": "validate-input",
       "name": "Validate Input (Headers + Schema)",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [-380, 100]
+      "position": [
+        -380,
+        100
+      ]
     },
     {
       "parameters": {
@@ -54,7 +70,11 @@
               "id": "valid-check",
               "leftValue": "={{ $json.valid }}",
               "rightValue": true,
-              "operator": { "type": "boolean", "operation": "true", "singleValue": true }
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
             }
           ],
           "combinator": "and"
@@ -64,19 +84,27 @@
       "name": "If Valid",
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.2,
-      "position": [-140, 100]
+      "position": [
+        -140,
+        100
+      ]
     },
     {
       "parameters": {
         "respondWith": "json",
         "responseBody": "={{ { status: 'rejected', errors: $json.errors } }}",
-        "options": { "responseCode": 400 }
+        "options": {
+          "responseCode": 400
+        }
       },
       "id": "respond-400",
       "name": "Respond 400 (Validation Failed)",
       "type": "n8n-nodes-base.respondToWebhook",
       "typeVersion": 1.1,
-      "position": [120, 300]
+      "position": [
+        120,
+        300
+      ]
     },
     {
       "parameters": {
@@ -86,18 +114,29 @@
       "name": "Idempotency Check (job_id)",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [120, 100]
+      "position": [
+        120,
+        100
+      ]
     },
     {
       "parameters": {
         "conditions": {
-          "options": { "caseSensitive": true, "typeValidation": "strict", "version": 2 },
+          "options": {
+            "caseSensitive": true,
+            "typeValidation": "strict",
+            "version": 2
+          },
           "conditions": [
             {
               "id": "dup-check",
               "leftValue": "={{ $json.duplicate }}",
               "rightValue": true,
-              "operator": { "type": "boolean", "operation": "true", "singleValue": true }
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
             }
           ],
           "combinator": "and"
@@ -107,31 +146,44 @@
       "name": "If Duplicate",
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.2,
-      "position": [360, 100]
+      "position": [
+        360,
+        100
+      ]
     },
     {
       "parameters": {
         "respondWith": "json",
         "responseBody": "={{ { status: 'accepted', replayed: true, previous_status: $json.previous_status } }}",
-        "options": { "responseCode": 200 }
+        "options": {
+          "responseCode": 200
+        }
       },
       "id": "respond-duplicate",
       "name": "Respond 200 (Duplicate Replay)",
       "type": "n8n-nodes-base.respondToWebhook",
       "typeVersion": 1.1,
-      "position": [600, 300]
+      "position": [
+        600,
+        300
+      ]
     },
     {
       "parameters": {
         "respondWith": "json",
         "responseBody": "={{ { status: 'awaiting_result', job_id: $json.job_id, employee_id: $json.employee_id } }}",
-        "options": { "responseCode": 202 }
+        "options": {
+          "responseCode": 202
+        }
       },
       "id": "respond-ack",
       "name": "Respond 202 (Awaiting Result)",
       "type": "n8n-nodes-base.respondToWebhook",
       "typeVersion": 1.1,
-      "position": [600, 100]
+      "position": [
+        600,
+        100
+      ]
     },
     {
       "parameters": {
@@ -144,7 +196,10 @@
       "name": "Sticky: Deterministic Gate",
       "type": "n8n-nodes-base.stickyNote",
       "typeVersion": 1,
-      "position": [-600, 460]
+      "position": [
+        -600,
+        460
+      ]
     },
     {
       "parameters": {
@@ -158,8 +213,11 @@
       "id": "coordinator-agent",
       "name": "Onboarding Coordinator (AI Agent)",
       "type": "@n8n/n8n-nodes-langchain.agent",
-      "typeVersion": 1.9,
-      "position": [860, 100],
+      "typeVersion": 2.2,
+      "position": [
+        860,
+        100
+      ],
       "onError": "continueErrorOutput"
     },
     {
@@ -174,62 +232,85 @@
       "name": "Coordinator Model (OpenAI)",
       "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
       "typeVersion": 1.2,
-      "position": [860, 320],
+      "position": [
+        860,
+        320
+      ],
       "credentials": {
-        "openAiApi": { "id": "REPLACE_OPENAI_CREDENTIAL_ID", "name": "OpenAI (configure in n8n)" }
+        "openAiApi": {
+          "id": "REPLACE_OPENAI_CREDENTIAL_ID",
+          "name": "OpenAI (configure in n8n)"
+        }
       }
     },
     {
       "parameters": {
-        "name": "onboarding_info",
-        "description": "Look up authoritative department facts (team lead and necessary accounts) by department name. Call this exactly once before drafting the welcome message. Input: a JSON object with key `department` (string). Output: a JSON object with keys team_lead (string), necessary_accounts (string[]), is_demo (boolean).",
-        "promptType": "define",
         "text": "=Return the department facts for `{{ $fromAI('department', 'department name as provided by HR', 'string') }}`.\n\nProcedure:\n1. Call the `departments_api` HTTP tool to fetch the full department list.\n2. Match a department by name (case-insensitive exact match on the `name` field).\n3. Respond with ONLY a JSON object: { \"team_lead\": \"...\", \"necessary_accounts\": [\"...\"], \"is_demo\": true|false }.\n4. If the department is not found or the HTTP tool fails, respond with: { \"error\": \"DEPARTMENT_UNKNOWN\" }.\n\nDo not invent values. Do not alter capitalization of the returned labels.",
         "options": {
           "systemMessage": "You are a read-only department lookup. You MUST use the `departments_api` HTTP tool and must not fabricate department information. Output a JSON object only, no prose."
-        }
+        },
+        "toolDescription": "Look up authoritative department facts (team lead and necessary accounts) by department name. Call this exactly once before drafting the welcome message. Input: a JSON object with key `department` (string). Output: a JSON object with keys team_lead (string), necessary_accounts (string[]), is_demo (boolean).",
+        "hasOutputParser": false
       },
       "id": "info-agent-tool",
-      "name": "Onboarding Info Agent (Tool)",
+      "name": "onboarding_info",
       "type": "@n8n/n8n-nodes-langchain.agentTool",
-      "typeVersion": 1.9,
-      "position": [1120, 320]
+      "typeVersion": 2.2,
+      "position": [
+        1120,
+        320
+      ]
     },
     {
       "parameters": {
         "model": "={{ $env.OPENAI_MODEL || 'gpt-4o-mini' }}",
-        "options": { "temperature": 0, "maxTokens": 400 }
+        "options": {
+          "temperature": 0,
+          "maxTokens": 400
+        }
       },
       "id": "info-model",
       "name": "Info Agent Model (OpenAI)",
       "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
       "typeVersion": 1.2,
-      "position": [1120, 540],
+      "position": [
+        1120,
+        540
+      ],
       "credentials": {
-        "openAiApi": { "id": "REPLACE_OPENAI_CREDENTIAL_ID", "name": "OpenAI (configure in n8n)" }
+        "openAiApi": {
+          "id": "REPLACE_OPENAI_CREDENTIAL_ID",
+          "name": "OpenAI (configure in n8n)"
+        }
       }
     },
     {
       "parameters": {
-        "name": "departments_api",
-        "description": "GET the backend department registry. No input required. Returns the full array of departments with id, name, team_lead, necessary_accounts, is_demo.",
         "method": "GET",
         "url": "={{ $env.BACKEND_BASE_URL }}/api/internal/departments",
-        "authentication": "predefinedCredentialType",
-        "nodeCredentialType": "httpHeaderAuth",
+        "authentication": "genericCredentialType",
         "sendHeaders": true,
         "parametersHeaders": {
           "values": [
-            { "name": "Accept", "value": "application/json" }
+            {
+              "name": "Accept",
+              "value": "application/json",
+              "valueProvider": "fieldValue"
+            }
           ]
         },
-        "optimizeResponse": false
+        "optimizeResponse": false,
+        "toolDescription": "GET the backend department registry. No input required. Returns the full array of departments with id, name, team_lead, necessary_accounts, is_demo.",
+        "genericAuthType": "httpHeaderAuth"
       },
       "id": "departments-http-tool",
-      "name": "Departments HTTP Tool",
+      "name": "departments_api",
       "type": "@n8n/n8n-nodes-langchain.toolHttpRequest",
       "typeVersion": 1.1,
-      "position": [1340, 540],
+      "position": [
+        1340,
+        540
+      ],
       "credentials": {
         "httpHeaderAuth": {
           "id": "REPLACE_DEPARTMENTS_CREDENTIAL_ID",
@@ -239,32 +320,43 @@
     },
     {
       "parameters": {
-        "name": "welcome_announcement",
-        "description": "Draft a short, friendly German welcome message for a new employee. Call this AFTER `onboarding_info`. Inputs: first_name (string), department (string), role (string), team_lead (string). Output: a JSON object { welcome_message: string }.",
-        "promptType": "define",
         "text": "=Write a warm, professional German welcome message for a new colleague.\n\nFacts:\n- first_name: {{ $fromAI('first_name', 'given name', 'string') }}\n- department: {{ $fromAI('department', 'department name', 'string') }}\n- role: {{ $fromAI('role', 'job title', 'string') }}\n- team_lead: {{ $fromAI('team_lead', 'team lead name', 'string') }}\n\nConstraints:\n- Language: German.\n- 2–4 short sentences, 200–600 characters total.\n- Mention first_name, department, role and team_lead naturally.\n- No HTML, no markdown, no emojis, no personal email.\n- No instructions, promises, permissions, or action items for the reader.\n\nReturn ONLY a JSON object: { \"welcome_message\": \"...\" }.",
         "options": {
           "systemMessage": "You draft a short German welcome message. Output a JSON object only. Do not send email. Do not grant permissions."
-        }
+        },
+        "toolDescription": "Draft a short, friendly German welcome message for a new employee. Call this AFTER `onboarding_info`. Inputs: first_name (string), department (string), role (string), team_lead (string). Output: a JSON object { welcome_message: string }.",
+        "hasOutputParser": false
       },
       "id": "welcome-agent-tool",
-      "name": "Welcome Announcement Agent (Tool)",
+      "name": "welcome_announcement",
       "type": "@n8n/n8n-nodes-langchain.agentTool",
-      "typeVersion": 1.9,
-      "position": [1120, 100]
+      "typeVersion": 2.2,
+      "position": [
+        1120,
+        100
+      ]
     },
     {
       "parameters": {
         "model": "={{ $env.OPENAI_MODEL || 'gpt-4o-mini' }}",
-        "options": { "temperature": 0.4, "maxTokens": 400 }
+        "options": {
+          "temperature": 0.4,
+          "maxTokens": 400
+        }
       },
       "id": "welcome-model",
       "name": "Welcome Agent Model (OpenAI)",
       "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
       "typeVersion": 1.2,
-      "position": [1120, -100],
+      "position": [
+        1120,
+        -100
+      ],
       "credentials": {
-        "openAiApi": { "id": "REPLACE_OPENAI_CREDENTIAL_ID", "name": "OpenAI (configure in n8n)" }
+        "openAiApi": {
+          "id": "REPLACE_OPENAI_CREDENTIAL_ID",
+          "name": "OpenAI (configure in n8n)"
+        }
       }
     },
     {
@@ -278,7 +370,10 @@
       "name": "Sticky: Agents",
       "type": "n8n-nodes-base.stickyNote",
       "typeVersion": 1,
-      "position": [860, -500]
+      "position": [
+        860,
+        -500
+      ]
     },
     {
       "parameters": {
@@ -288,18 +383,29 @@
       "name": "Validate Output (Strict Schema)",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [1620, 100]
+      "position": [
+        1620,
+        100
+      ]
     },
     {
       "parameters": {
         "conditions": {
-          "options": { "caseSensitive": true, "typeValidation": "strict", "version": 2 },
+          "options": {
+            "caseSensitive": true,
+            "typeValidation": "strict",
+            "version": 2
+          },
           "conditions": [
             {
               "id": "out-valid",
               "leftValue": "={{ $json.valid }}",
               "rightValue": true,
-              "operator": { "type": "boolean", "operation": "true", "singleValue": true }
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
             }
           ],
           "combinator": "and"
@@ -309,74 +415,106 @@
       "name": "If Output Valid",
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.2,
-      "position": [1860, 100]
+      "position": [
+        1860,
+        100
+      ]
     },
     {
       "parameters": {
         "method": "POST",
         "url": "={{ $env.BACKEND_BASE_URL }}/api/internal/onboarding/result",
-        "authentication": "predefinedCredentialType",
-        "nodeCredentialType": "httpHeaderAuth",
+        "authentication": "genericCredentialType",
         "sendHeaders": true,
         "headerParameters": {
           "parameters": [
-            { "name": "Content-Type", "value": "application/json" }
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
           ]
         },
         "sendBody": true,
         "specifyBody": "json",
         "jsonBody": "={{ JSON.stringify({ employee_id: $json.employee_id, status: 'completed', team_lead: $json.team_lead, necessary_accounts: $json.necessary_accounts, welcome_message: $json.welcome_message }) }}",
         "options": {
-          "redirect": { "redirect": { "followRedirects": false } },
-          "retry": { "retry": { "maxTries": 5, "waitBetweenTries": 3000 } },
+          "redirect": {
+            "redirect": {
+              "followRedirects": false
+            }
+          },
           "timeout": 10000,
-          "response": { "response": { "fullResponse": false, "neverError": false } }
-        }
+          "response": {
+            "response": {
+              "fullResponse": false,
+              "neverError": false
+            }
+          }
+        },
+        "genericAuthType": "httpHeaderAuth"
       },
       "id": "callback-success",
       "name": "Callback: Completed",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
-      "position": [2100, 0],
+      "position": [
+        2100,
+        0
+      ],
       "credentials": {
         "httpHeaderAuth": {
           "id": "REPLACE_INTERNAL_API_CREDENTIAL_ID",
           "name": "Internal API Secret (Header Auth)"
         }
-      }
+      },
+      "retryOnFail": true,
+      "maxTries": 5,
+      "waitBetweenTries": 3000
     },
     {
       "parameters": {
         "method": "POST",
         "url": "={{ $env.BACKEND_BASE_URL }}/api/internal/onboarding/result",
-        "authentication": "predefinedCredentialType",
-        "nodeCredentialType": "httpHeaderAuth",
+        "authentication": "genericCredentialType",
         "sendHeaders": true,
         "headerParameters": {
           "parameters": [
-            { "name": "Content-Type", "value": "application/json" }
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
           ]
         },
         "sendBody": true,
         "specifyBody": "json",
         "jsonBody": "={{ JSON.stringify({ employee_id: $json.employee_id, status: 'failed', error_code: $json.error_code || 'AGENT_PROCESSING_FAILED' }) }}",
         "options": {
-          "redirect": { "redirect": { "followRedirects": false } },
-          "retry": { "retry": { "maxTries": 5, "waitBetweenTries": 3000 } },
+          "redirect": {
+            "redirect": {
+              "followRedirects": false
+            }
+          },
           "timeout": 10000
-        }
+        },
+        "genericAuthType": "httpHeaderAuth"
       },
       "id": "callback-failed",
       "name": "Callback: Failed",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
-      "position": [2100, 200],
+      "position": [
+        2100,
+        200
+      ],
       "credentials": {
         "httpHeaderAuth": {
           "id": "REPLACE_INTERNAL_API_CREDENTIAL_ID",
           "name": "Internal API Secret (Header Auth)"
         }
-      }
+      },
+      "retryOnFail": true,
+      "maxTries": 5,
+      "waitBetweenTries": 3000
     },
     {
       "parameters": {
@@ -386,7 +524,10 @@
       "name": "Persist Terminal State",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [2340, 0]
+      "position": [
+        2340,
+        0
+      ]
     },
     {
       "parameters": {
@@ -396,7 +537,10 @@
       "name": "Persist Failed State",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [2340, 200]
+      "position": [
+        2340,
+        200
+      ]
     },
     {
       "parameters": {
@@ -409,7 +553,10 @@
       "name": "Sticky: Callback",
       "type": "n8n-nodes-base.stickyNote",
       "typeVersion": 1,
-      "position": [2080, -480]
+      "position": [
+        2080,
+        -480
+      ]
     },
     {
       "parameters": {
@@ -419,117 +566,245 @@
       "name": "On Agent Error (map to failed)",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [1620, 320]
+      "position": [
+        1620,
+        320
+      ]
     }
   ],
   "connections": {
     "Webhook (Onboarding In)": {
       "main": [
-        [{ "node": "Validate Input (Headers + Schema)", "type": "main", "index": 0 }]
+        [
+          {
+            "node": "Validate Input (Headers + Schema)",
+            "type": "main",
+            "index": 0
+          }
+        ]
       ]
     },
     "Validate Input (Headers + Schema)": {
       "main": [
-        [{ "node": "If Valid", "type": "main", "index": 0 }]
+        [
+          {
+            "node": "If Valid",
+            "type": "main",
+            "index": 0
+          }
+        ]
       ]
     },
     "If Valid": {
       "main": [
-        [{ "node": "Idempotency Check (job_id)", "type": "main", "index": 0 }],
-        [{ "node": "Respond 400 (Validation Failed)", "type": "main", "index": 0 }]
+        [
+          {
+            "node": "Idempotency Check (job_id)",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Respond 400 (Validation Failed)",
+            "type": "main",
+            "index": 0
+          }
+        ]
       ]
     },
     "Idempotency Check (job_id)": {
       "main": [
-        [{ "node": "If Duplicate", "type": "main", "index": 0 }]
+        [
+          {
+            "node": "If Duplicate",
+            "type": "main",
+            "index": 0
+          }
+        ]
       ]
     },
     "If Duplicate": {
       "main": [
-        [{ "node": "Respond 200 (Duplicate Replay)", "type": "main", "index": 0 }],
         [
-          { "node": "Respond 202 (Awaiting Result)", "type": "main", "index": 0 },
-          { "node": "Onboarding Coordinator (AI Agent)", "type": "main", "index": 0 }
+          {
+            "node": "Respond 200 (Duplicate Replay)",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Respond 202 (Awaiting Result)",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Onboarding Coordinator (AI Agent)",
+            "type": "main",
+            "index": 0
+          }
         ]
       ]
     },
     "Coordinator Model (OpenAI)": {
       "ai_languageModel": [
-        [{ "node": "Onboarding Coordinator (AI Agent)", "type": "ai_languageModel", "index": 0 }]
+        [
+          {
+            "node": "Onboarding Coordinator (AI Agent)",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
       ]
     },
     "Info Agent Model (OpenAI)": {
       "ai_languageModel": [
-        [{ "node": "Onboarding Info Agent (Tool)", "type": "ai_languageModel", "index": 0 }]
+        [
+          {
+            "node": "onboarding_info",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
       ]
     },
     "Welcome Agent Model (OpenAI)": {
       "ai_languageModel": [
-        [{ "node": "Welcome Announcement Agent (Tool)", "type": "ai_languageModel", "index": 0 }]
+        [
+          {
+            "node": "welcome_announcement",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
       ]
     },
-    "Departments HTTP Tool": {
+    "departments_api": {
       "ai_tool": [
-        [{ "node": "Onboarding Info Agent (Tool)", "type": "ai_tool", "index": 0 }]
+        [
+          {
+            "node": "onboarding_info",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
       ]
     },
-    "Onboarding Info Agent (Tool)": {
+    "onboarding_info": {
       "ai_tool": [
-        [{ "node": "Onboarding Coordinator (AI Agent)", "type": "ai_tool", "index": 0 }]
+        [
+          {
+            "node": "Onboarding Coordinator (AI Agent)",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
       ]
     },
-    "Welcome Announcement Agent (Tool)": {
+    "welcome_announcement": {
       "ai_tool": [
-        [{ "node": "Onboarding Coordinator (AI Agent)", "type": "ai_tool", "index": 0 }]
+        [
+          {
+            "node": "Onboarding Coordinator (AI Agent)",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
       ]
     },
     "Onboarding Coordinator (AI Agent)": {
       "main": [
-        [{ "node": "Validate Output (Strict Schema)", "type": "main", "index": 0 }],
-        [{ "node": "On Agent Error (map to failed)", "type": "main", "index": 0 }]
+        [
+          {
+            "node": "Validate Output (Strict Schema)",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "On Agent Error (map to failed)",
+            "type": "main",
+            "index": 0
+          }
+        ]
       ]
     },
     "Validate Output (Strict Schema)": {
       "main": [
-        [{ "node": "If Output Valid", "type": "main", "index": 0 }]
+        [
+          {
+            "node": "If Output Valid",
+            "type": "main",
+            "index": 0
+          }
+        ]
       ]
     },
     "If Output Valid": {
       "main": [
         [
-          { "node": "Callback: Completed", "type": "main", "index": 0 }
+          {
+            "node": "Callback: Completed",
+            "type": "main",
+            "index": 0
+          }
         ],
         [
-          { "node": "Callback: Failed", "type": "main", "index": 0 }
+          {
+            "node": "Callback: Failed",
+            "type": "main",
+            "index": 0
+          }
         ]
       ]
     },
     "Callback: Completed": {
       "main": [
-        [{ "node": "Persist Terminal State", "type": "main", "index": 0 }]
+        [
+          {
+            "node": "Persist Terminal State",
+            "type": "main",
+            "index": 0
+          }
+        ]
       ]
     },
     "Callback: Failed": {
       "main": [
-        [{ "node": "Persist Failed State", "type": "main", "index": 0 }]
+        [
+          {
+            "node": "Persist Failed State",
+            "type": "main",
+            "index": 0
+          }
+        ]
       ]
     },
     "On Agent Error (map to failed)": {
       "main": [
-        [{ "node": "Callback: Failed", "type": "main", "index": 0 }]
+        [
+          {
+            "node": "Callback: Failed",
+            "type": "main",
+            "index": 0
+          }
+        ]
       ]
     }
   },
   "settings": {
     "executionOrder": "v1",
-    "saveManualExecutions": true,
+    "saveManualExecutions": false,
     "callerPolicy": "workflowsFromSameOwner",
-    "errorWorkflow": ""
+    "errorWorkflow": "",
+    "saveDataSuccessExecution": "none",
+    "saveDataErrorExecution": "none"
   },
   "pinData": {},
   "meta": {
     "templateCredsSetupCompleted": false
   },
-  "active": false,
-  "versionId": "wbs-onboarding-webhook-v1"
+  "active": false
 }

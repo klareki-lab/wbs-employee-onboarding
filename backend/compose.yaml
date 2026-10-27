@@ -25,6 +25,7 @@ services:
       DATABASE_URL: postgresql://onboarding:onboarding_local_only@db:5432/onboarding
       APP_ORIGIN: ${APP_ORIGIN:-http://localhost:5173}
       INTERNAL_API_SECRET: ${INTERNAL_API_SECRET:?Set INTERNAL_API_SECRET in backend/.env}
+      ONBOARDING_WORKER_EMPLOYEE_ID: ${ONBOARDING_WORKER_EMPLOYEE_ID:-}
       DEPARTMENTS_API_SECRET: ${DEPARTMENTS_API_SECRET:-}
       SMTP_HOST: mailpit
       SMTP_PORT: 1025

@@ -6,6 +6,10 @@ Importable, **unpublished** n8n workflows for the WBS Employee Onboarding Assist
 - Live deployment: **do not activate** on the production n8n host. These files are for import, review and local inspection only.
 - Boundaries: this branch owns only `/workflows`. It does not modify the Trade Fair Assistant, the production n8n host, DNS, SMTP, or the production database.
 
+## Isolated local integration
+
+Local n8n can now run at **http://localhost:5681** without exposing the backend or touching production. See [local-n8n.md](../docs/local-n8n.md) for the verified bootstrap, credential storage, connection probe, and single-existing-employee resume command. The employee workflow stays unpublished until an onboarding-authorized OpenAI key passes a model/tool-call preflight.
+
 ## Files
 
 | File | Purpose |
@@ -20,7 +24,7 @@ Importable, **unpublished** n8n workflows for the WBS Employee Onboarding Assist
 Create these as named n8n credentials and then re-link them inside each imported workflow (the exports contain `REPLACE_*_CREDENTIAL_ID` placeholders).
 
 1. **OpenAI (`OpenAI (configure in n8n)`)** — OpenAI API credential. Model defaults to `gpt-4o-mini` (cost-efficient) and can be overridden via the `OPENAI_MODEL` environment variable.
-2. **Onboarding Webhook Secret** — not an n8n credential, but a webhook bearer secret. The `Validate Input (Headers + Schema)` node compares the incoming `Authorization: Bearer …` against the `N8N_ONBOARDING_WEBHOOK_SECRET` environment variable. This secret is **independent** of the Trade Fair webhook keys.
+2. **Onboarding Webhook Secret** — an n8n **Header Auth** credential on the Webhook node: header `Authorization`, value `Bearer <N8N_ONBOARDING_WEBHOOK_SECRET>`. Authentication runs before the Code node, so Code nodes need no access to secret environment variables. This secret is **independent** of the Trade Fair webhook keys.
 3. **Departments API Secret (`httpHeaderAuth`)** — Header Auth credential:
    - Name: `Authorization`
    - Value: `Bearer <DEPARTMENTS_API_SECRET>`
@@ -43,7 +47,7 @@ The two Header Auth credentials are intentionally separate because `DEPARTMENTS_
 1. In n8n, open **Workflows → Import from File** and import `onboarding-webhook.json`.
 2. Open each `OpenAI` sub-node, each HTTP Request tool and the two HTTP Request callback nodes, and re-select the credentials you created above.
 3. Repeat for `onboarding-chat-trigger.json`.
-4. Keep both workflows **inactive**. Do not activate on the production host.
+4. Keep manually imported workflows **inactive** until configured. The local bootstrap publishes only its non-mutating connectivity probe; the resume command publishes the local employee workflow after credential checks. Do not activate on the production host.
 
 ## Testing
 
@@ -86,7 +90,7 @@ Expected: webhook returns `202 awaiting_result`; n8n execution log shows both su
 
 ### Negative tests
 
-- Invalid bearer → `400` from Webhook, agents never run.
+- Invalid bearer → `403` from Webhook, agents never run.
 - Mismatched `Idempotency-Key` ≠ `body.job_id` → `400`.
 - Replayed delivery (same `job_id` after a terminal result) → `200 replayed`, agents not re-invoked.
 - Unknown department in Chat demo → Info Agent returns `DEPARTMENT_UNKNOWN`, Coordinator surfaces the failure.
@@ -103,7 +107,7 @@ Expected: webhook returns `202 awaiting_result`; n8n execution log shows both su
 
 The LLM is never trusted at the trust boundary:
 
-- **Input validation** (`Validate Input (Headers + Schema)`): Bearer check against env secret, event name, UUID shape for `job_id` and `employee_id`, header `Idempotency-Key == body.job_id`, type/range checks for names, department, role, `YYYY-MM-DD` date, email shape.
+- **Input validation** (`Validate Input (Headers + Schema)`): native Webhook Header Auth credential, event name, UUID shape for `job_id` and `employee_id`, header `Idempotency-Key == body.job_id`, type/range checks for names, department, role, `YYYY-MM-DD` date, email shape.
 - **Output validation** (`Validate Output (Strict Schema)`): JSON must parse; `team_lead` 1–200 chars; 1–30 account labels each 1–200 chars; `welcome_message` 1–4000 chars; otherwise `AGENT_PROCESSING_FAILED`.
 
 Both validations match the backend contract (`api-contract.md`, `integration.md`) exactly.

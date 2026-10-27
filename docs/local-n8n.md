@@ -1,0 +1,70 @@
+# Local n8n integration — Employee Onboarding MVP v1
+
+The safe connection is a new, isolated n8n 2.41.7 container on the existing **onboarding-only** Docker network. The editor binds only to `127.0.0.1:5681`; the backend stays on localhost:3009. n8n calls `http://api:3001` over Docker; the backend will call `http://n8n:5678/webhook/wbs-onboarding`. No tunnel, public backend exposure, live n8n modification, DNS, production credential reuse or mail changes are involved.
+
+## Current verified state (2026-10-27)
+
+- Local n8n: http://localhost:5681, with a dedicated `onboarding_n8n` volume and encryption key.
+- A published **connectivity-only** workflow rejects unsigned requests with 403, reads all three departments using the independent read-only credential, and reaches the authenticated callback endpoint.
+- The callback probe sends `{}` and confirms HTTP 400 `VALIDATION_ERROR`, demonstrating authentication and routing without changing any employee or onboarding job.
+- Backend health is `ok`; Mailpit HTTP API is reachable and the backend SMTP adapter's `verify()` succeeds. No new invitation has been sent.
+- Existing employee **Sergii Tytov**, ID `71fac882-8236-4641-98d5-86ffd1b60ab1`, has job `c4007247-e99e-4a31-8eb4-0f4462648996`. It remains `unavailable`, zero attempts, pending HR status and no agent result. No duplicate employee has been created.
+- The earlier smoke-test employee is preserved separately and will be excluded from the controlled run.
+- **Missing prerequisite:** an onboarding-authorized OpenAI API key. The employee workflow is imported but unpublished; backend dispatch is deliberately not enabled without this credential. AI processing, approval and invitation delivery therefore remain unverified for this existing employee.
+
+## Exact owner action and resume command
+
+Add a valid, billing-enabled onboarding project key as `OPENAI_API_KEY=...` to the existing ignored **`backend/.env`** on this Mac, using your editor. Do not paste it into chat or shell history. Optional `OPENAI_MODEL` defaults to the export's existing `gpt-4o-mini`; use a model supported by the installed n8n OpenAI Chat Model node. This setup does not extract credentials from any other app or production instance.
+
+Then run from the repository root:
+
+```sh
+python3 workflows/scripts/connect-local.py \
+  --employee-id 71fac882-8236-4641-98d5-86ffd1b60ab1
+```
+
+This command first makes a tiny OpenAI tool-call readiness request containing **no employee information**. It checks model access and billing before any employee dispatch. It stops without altering jobs if the key is absent or rejected. Model requests go to the official OpenAI API; subsequent real agent prompts contain the existing employee's onboarding facts, excluding personal email.
+
+With readiness confirmed, it verifies the selected employee already exists and is still pending/unprocessed, prepares/imports encrypted local credentials, publishes only the local onboarding workflow, restarts local n8n, tests connectivity and deterministic webhook validation, and sets:
+
+```ini
+N8N_ONBOARDING_WEBHOOK_URL=http://n8n:5678/webhook/wbs-onboarding
+ONBOARDING_WORKER_EMPLOYEE_ID=71fac882-8236-4641-98d5-86ffd1b60ab1
+```
+
+The backend is rebuilt/restarted using the local overlay. The existing unavailable job automatically becomes queued and is dispatched by the normal durable worker. No database status reset, artificial callback, new registration or account creation is used. The optional employee scope limits both recovery of unavailable jobs and queue claims to this employee. Remove that scope from local configuration and recreate the API only when ready to process other registrations normally.
+
+The command observes the job for up to 45 seconds; slow AI processing may continue afterward. Refresh the existing employee detail page. An actual terminal failure must be investigated rather than overwritten or silently retried with a new employee.
+
+## Complete the demonstration
+
+Once the existing employee shows `completed`, sign in as the existing HR user, open that employee's detail page, approve the invitation, and select send. The backend checks real processing completion and explicit HR approval. Confirm `smtp_accepted` and open the captured German invitation at **http://localhost:8025**. SMTP acceptance means Mailpit capture, not external inbox delivery.
+
+The employee must choose their own username/password on the activation page. Do not generate an employee password, reveal the activation token in logs, or create a corporate mailbox. Activate once, sign in as the employee and verify the dashboard. Activation credential entry is an owner/employee interaction, not an AI-generated credential step.
+
+## Bootstrap and checks already performed
+
+For a fresh local n8n volume (preserve all existing onboarding volumes):
+
+```sh
+python3 workflows/scripts/prepare-local.py
+docker compose --env-file backend/.env \
+  -f backend/compose.yaml -f backend/compose.n8n.yaml up -d api n8n
+python3 workflows/scripts/import-local.py
+docker restart wbs-employee-onboarding-n8n-1
+python3 workflows/scripts/check-local.py
+```
+
+`prepare-local.py` generates independent webhook/read-only bearer secrets if missing, preserves the backend callback secret and n8n encryption key, and renders local endpoint/model values. `import-local.py` imports only into the explicitly named new local container and publishes only the connectivity probe. Do not rerun imports during an in-flight employee execution.
+
+Secrets are in ignored local files with mode 0600; the `.local` directory is mode 0700. Generated plaintext credential imports are transferred through stdin into a temporary mode-0600 container file and removed after import; the host credential JSON is also removed. n8n stores the imported credentials encrypted in its dedicated volume. No OpenAI key is provided to Code nodes or the backend Compose environment. Workflow execution payload persistence is disabled to avoid retaining webhook bearer headers. Code-node environment access remains blocked. The local n8n editor may request its own owner setup; that account is separate from the HR account and is not required for the CLI imports/probe.
+
+## Integration corrections
+
+- Added missing webhook IDs so routes register as `/webhook/wbs-onboarding` and `/webhook/wbs-onboarding-connectivity`.
+- Replaced nonexistent Agent Tool version 1.9 with supported 2.2, aligned Coordinator version and actual `toolDescription`/node-name fields.
+- Corrected generic Header Auth configuration for department and callback HTTP nodes and fixed callback retry settings to use n8n's actual node-level options.
+- Moved bearer validation into the Webhook Header Auth credential. Code nodes no longer read secrets from environment variables.
+- Local rendering resolves API URLs and model values, preserving the default block on Code-node environment access.
+
+References: [n8n server CLI import/publish commands](https://github.com/n8n-io/n8n-docs/blob/main/docs/deploy/host-n8n/configure-n8n/use-the-command-line.md), [OpenAI model access](https://developers.openai.com/api/reference/resources/models/methods/list), [exported model documentation](https://developers.openai.com/api/docs/models/gpt-4o-mini). Installed n8n node schemas were also inspected directly to verify supported versions.
