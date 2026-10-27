@@ -51,7 +51,7 @@ def run(command, *, data=None, env=None):
     result = subprocess.run(command, cwd=ROOT, input=data, capture_output=True, env=env)
     if result.returncode:
         # Docker/provider/import errors can contain credentials. Do not echo arbitrary output.
-        raise SystemExit('Local command failed: ' + command[0] +
+        raise SystemExit('Local command failed: ' + command[0] + ' (exit ' + str(result.returncode) + ')' +
                          '. No raw output printed. Check Docker Desktop, free ports, network and configured credentials. '
                          'Existing accounts/volumes were not reset.')
     return result.stdout.decode('utf-8').strip()
@@ -145,11 +145,12 @@ def main():
         return dc('ps', '-q', service)
 
     def prepare_import():
-        print('Preparing private workflow and credential imports...')
+        print('Preparing private workflow and credential imports...', flush=True)
         run([sys.executable, str(ROOT / 'workflows/scripts/prepare-local.py'),
              '--env-file', str(path), '--local-dir', str(state / 'n8n')])
         run([sys.executable, str(ROOT / 'workflows/scripts/import-local.py'),
              '--bootstrap-dir', str(state / 'n8n/bootstrap'), '--container', container('n8n')])
+        print('Publishing the local employee webhook...', flush=True)
         dc('exec', '-T', 'n8n', 'n8n', 'publish:workflow', '--id=wbsOnboardingLocal')
         private_write(state / 'imported', 'Workflows imported and published; retain this marker across restarts.\n')
         dc('restart', 'n8n')

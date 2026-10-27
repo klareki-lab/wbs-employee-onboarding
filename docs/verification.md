@@ -11,6 +11,8 @@ python3 scripts/local.py --project wbs-onboarding-verify configure --mail-mode c
 python3 scripts/local.py --project wbs-onboarding-verify up
 ```
 
+A second verification cloned the public GitHub branch into a separate temporary directory, with no host `node_modules`, copied owner config, database, accounts or volumes. The documented configure/up path built both applications, imported/published both workflows and passed preflight on another set of ports (25173/23009/25681/28025). Its database contained 0 employees, 0 accounts and 3 fictional departments. The first publication command failed while parallel verification stacks were running; rerunning `up` succeeded after freeing the completed test stack. No provider job was created in that second installation. Setup now prints stage/exit-code diagnostics without raw credential-bearing output.
+
 The verification harness supplied an already authorized OpenAI key through a private environment path rather than exposing it in terminal output. Yuri supplies his own key through the hidden configure prompt. External SMTP was checked separately using the independently authorized private Resend configuration; no additional real email was sent by handover verification.
 
 | Check | Result |
