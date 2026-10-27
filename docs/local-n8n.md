@@ -68,3 +68,17 @@ Secrets are in ignored local files with mode 0600; the `.local` directory is mod
 - Local rendering resolves API URLs and model values, preserving the default block on Code-node environment access.
 
 References: [n8n server CLI import/publish commands](https://github.com/n8n-io/n8n-docs/blob/main/docs/deploy/host-n8n/configure-n8n/use-the-command-line.md), [OpenAI model access](https://developers.openai.com/api/reference/resources/models/methods/list), [exported model documentation](https://developers.openai.com/api/docs/models/gpt-4o-mini). Installed n8n node schemas were also inspected directly to verify supported versions.
+
+## P0 webhook preflight correction
+
+The employee webhook had `options.ignoreBots: true`, while the connectivity webhook did not. n8n 2.41.7's Webhook implementation runs this User-Agent filter **before Header Auth** and before the workflow Code node. Both Python urllib and the backend's Node/undici client were rejected with 403 even though the same encrypted Header Auth credential succeeded on the connectivity route. The workflow was published and `/webhook/wbs-onboarding` was registered correctly. In-memory comparisons confirmed that the backend `.env`, running backend, and encrypted n8n Header Auth secret matched; no values were displayed.
+
+The employee machine-to-machine webhook now sets `ignoreBots: false`; Header Auth remains required. Code-node environment access stays blocked and the validator does not read `$env`. No production instance was changed. The resume script now delegates its employee-webhook preflight to the shared checker, which verifies all three cases:
+
+```sh
+python3 workflows/scripts/check-local.py --employee-webhook
+```
+
+Verified locally: missing credential → 403; incorrect credential → 403; correct credential with invalid body `{}` → 400 from deterministic validation. Connectivity, department lookup, callback-schema rejection, backend health and Mailpit checks also pass. These checks do not create or change employees/jobs.
+
+Resuming the real employee job transmits the employee's first/last name, department, role and start date plus department facts to OpenAI via the local agents. Personal email, passwords and invitation tokens are excluded from model prompts. Automatic approval review required explicit owner approval for that specific external transmission; the local fix and non-mutating checks are complete independently of approval.

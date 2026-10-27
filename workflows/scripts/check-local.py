@@ -1,10 +1,14 @@
 #!/usr/bin/env python3
 """Non-mutating n8n/API/Mailpit checks. No bearer, employee data or tokens are printed."""
 import json
+import argparse
 import urllib.request
 import urllib.error
 import time
 from pathlib import Path
+parser=argparse.ArgumentParser()
+parser.add_argument('--employee-webhook',action='store_true')
+args=parser.parse_args()
 ROOT=Path(__file__).resolve().parents[2]
 env={}
 for line in (ROOT/'backend/.env').read_text().splitlines():
@@ -48,3 +52,12 @@ print('Backend health:',health['data']['status'])
 code,_=request('http://localhost:8025/api/v1/info')
 assert code==200
 print('Mailpit HTTP API reachable')
+
+if args.employee_webhook:
+    url='http://localhost:5681/webhook/wbs-onboarding'
+    for bearer in [None,'deliberately-invalid-diagnostic-credential']:
+        code,_=request(url,{},bearer)
+        assert code==403,f'Employee webhook must reject absent/invalid authentication; received {code}'
+    code,_=request(url,{},env['N8N_ONBOARDING_WEBHOOK_SECRET'])
+    assert code==400,f'Employee webhook preflight failed (HTTP {code}); dispatch stays disabled.'
+    print('Employee webhook: missing/wrong credential → 403; authenticated invalid payload → 400')

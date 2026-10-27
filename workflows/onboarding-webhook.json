@@ -24,7 +24,7 @@
         "responseMode": "responseNode",
         "options": {
           "rawBody": false,
-          "ignoreBots": true
+          "ignoreBots": false
         },
         "authentication": "headerAuth"
       },

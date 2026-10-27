@@ -64,15 +64,7 @@ subprocess.run([sys.executable,'workflows/scripts/import-local.py'],check=True)
 result=subprocess.run(['docker','exec','wbs-employee-onboarding-n8n-1','n8n','publish:workflow','--id=wbsOnboardingLocal'],capture_output=True)
 if result.returncode:raise SystemExit('Local employee workflow publication failed; dispatch stays disabled.')
 subprocess.run(['docker','restart','wbs-employee-onboarding-n8n-1'],check=True,stdout=subprocess.DEVNULL)
-subprocess.run([sys.executable,'workflows/scripts/check-local.py'],check=True)
-
-# Confirm the actual employee webhook is registered and its deterministic validation runs.
-req=urllib.request.Request('http://localhost:5681/webhook/wbs-onboarding',data=b'{}',headers={'Authorization':'Bearer '+env['N8N_ONBOARDING_WEBHOOK_SECRET'],'Content-Type':'application/json'})
-try:
-    urllib.request.urlopen(req,timeout=15)
-    raise SystemExit('Unexpected webhook acceptance of invalid body; dispatch stays disabled.')
-except urllib.error.HTTPError as error:
-    if error.code!=400:raise SystemExit(f'Employee webhook preflight failed (HTTP {error.code}); dispatch stays disabled.') from None
+subprocess.run([sys.executable,'workflows/scripts/check-local.py','--employee-webhook'],check=True)
 
 updates={'N8N_ONBOARDING_WEBHOOK_URL':'http://n8n:5678/webhook/wbs-onboarding','ONBOARDING_WORKER_EMPLOYEE_ID':employee_id}
 lines=[line for line in env_path.read_text().splitlines() if line.split('=',1)[0] not in updates]
