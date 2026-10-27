@@ -337,6 +337,63 @@ test("real PostgreSQL + SMTP onboarding, concurrency and authorization", async (
       ).rows[0].n,
       1,
     );
+    // An explicit local technical-failure recovery preserves the prior terminal result.
+    const { recoverLocalJob } =
+      await import("../src/services/recover-local-job.js");
+    const retryEmployee = (
+      await pool.query(
+        "INSERT INTO employees(first_name,last_name,personal_email,department,role,start_date) VALUES('Retry','Fixture','retry.fixture@example.invalid','IT','Test','2026-11-03') RETURNING id",
+      )
+    ).rows[0].id;
+    const failure = {
+      employee_id: retryEmployee,
+      status: "failed",
+      error_code: "AGENT_PROCESSING_FAILED",
+    };
+    await pool.query(
+      "INSERT INTO onboarding_jobs(employee_id,processing_status,attempts,error_code,orchestration_result) VALUES($1,'failed',1,'AGENT_PROCESSING_FAILED',$2)",
+      [retryEmployee, JSON.stringify(failure)],
+    );
+    await assert.rejects(
+      () =>
+        recoverLocalJob(retryEmployee, 1, "Reviewed model locator mismatch"),
+      /dispatch disabled/,
+    );
+    const webhookUrl = config.N8N_ONBOARDING_WEBHOOK_URL;
+    config.N8N_ONBOARDING_WEBHOOK_URL = undefined;
+    try {
+      await assert.rejects(
+        () =>
+          recoverLocalJob(retryEmployee, 2, "Reviewed model locator mismatch"),
+        /exact attempt count/,
+      );
+      await recoverLocalJob(
+        retryEmployee,
+        1,
+        "Reviewed model locator mismatch",
+      );
+      const recovered = (
+        await pool.query(
+          "SELECT processing_status,attempts,orchestration_result,attempt_history FROM onboarding_jobs WHERE employee_id=$1",
+          [retryEmployee],
+        )
+      ).rows[0];
+      assert.equal(recovered.processing_status, "unavailable");
+      assert.equal(recovered.attempts, 1);
+      assert.equal(recovered.orchestration_result, null);
+      assert.equal(recovered.attempt_history.length, 1);
+      assert.deepEqual(
+        recovered.attempt_history[0].orchestration_result,
+        failure,
+      );
+      await assert.rejects(
+        () =>
+          recoverLocalJob(retryEmployee, 1, "Reviewed model locator mismatch"),
+        /reviewed terminal agent failure/,
+      );
+    } finally {
+      config.N8N_ONBOARDING_WEBHOOK_URL = webhookUrl;
+    }
   } finally {
     app.close();
     webhook.close();

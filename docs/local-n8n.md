@@ -1,22 +1,22 @@
 # Local n8n integration — Employee Onboarding MVP v1
 
-The safe connection is a new, isolated n8n 2.41.7 container on the existing **onboarding-only** Docker network. The editor binds only to `127.0.0.1:5681`; the backend stays on localhost:3009. n8n calls `http://api:3001` over Docker; the backend will call `http://n8n:5678/webhook/wbs-onboarding`. No tunnel, public backend exposure, live n8n modification, DNS, production credential reuse or mail changes are involved.
+The safe connection is a new, isolated n8n 2.41.7 container on the existing **onboarding-only** Docker network. The editor binds only to `127.0.0.1:5681`; the backend stays on localhost:3009. n8n calls `http://api:3001` over Docker; the backend calls `http://n8n:5678/webhook/wbs-onboarding`. No tunnel, public backend exposure, live n8n modification, DNS, production credential reuse or mail changes are involved.
 
 ## Current verified state (2026-10-27)
 
 - Local n8n: http://localhost:5681, with a dedicated `onboarding_n8n` volume and encryption key.
 - A published **connectivity-only** workflow rejects unsigned requests with 403, reads all three departments using the independent read-only credential, and reaches the authenticated callback endpoint.
 - The callback probe sends `{}` and confirms HTTP 400 `VALIDATION_ERROR`, demonstrating authentication and routing without changing any employee or onboarding job.
-- Backend health is `ok`; Mailpit HTTP API is reachable and the backend SMTP adapter's `verify()` succeeds. No new invitation has been sent.
-- Existing employee **Sergii Tytov**, ID `71fac882-8236-4641-98d5-86ffd1b60ab1`, has job `c4007247-e99e-4a31-8eb4-0f4462648996`. It remains `unavailable`, zero attempts, pending HR status and no agent result. No duplicate employee has been created.
-- The earlier smoke-test employee is preserved separately and will be excluded from the controlled run.
-- **Missing prerequisite:** an onboarding-authorized OpenAI API key. The employee workflow is imported but unpublished; backend dispatch is deliberately not enabled without this credential. AI processing, approval and invitation delivery therefore remain unverified for this existing employee.
+- Backend health is `ok`; Mailpit HTTP API is reachable and the backend SMTP adapter's `verify()` succeeds. No invitation for the authorized employee has been sent.
+- Existing employee **Sergii Tytov**, ID `71fac882-8236-4641-98d5-86ffd1b60ab1`, has job `c4007247-e99e-4a31-8eb4-0f4462648996`. It is now `completed` after the reviewed model-initialization failure was corrected. The same job has two dispatch attempts, with the first failed result retained in `attempt_history`. The employee is still pending HR approval. No duplicate employee has been created.
+- The earlier smoke-test employee is preserved separately and excluded by the selected-employee worker scope.
+- **Real AI processing verified:** local execution **14** ran the Coordinator, `onboarding_info`, `departments_api`, and `welcome_announcement`, then output validation, `Callback: Completed`, and terminal persistence. The authenticated callback is stored in PostgreSQL. Team lead Sarah Miller and GitHub/Google Workspace/Jira match the department registry. Chrome shows HR approval enabled; sending remains disabled until HR approves. No approval or invitation was performed for this employee.
 
-## Exact owner action and resume command
+## Bootstrap/resume command (already executed for the authorized employee)
 
 Add a valid, billing-enabled onboarding project key as `OPENAI_API_KEY=...` to the existing ignored **`backend/.env`** on this Mac, using your editor. Do not paste it into chat or shell history. Optional `OPENAI_MODEL` defaults to the export's existing `gpt-4o-mini`; use a model supported by the installed n8n OpenAI Chat Model node. This setup does not extract credentials from any other app or production instance.
 
-Then run from the repository root:
+For a new, unprocessed authorized employee, run from the repository root (do not rerun the completed employee):
 
 ```sh
 python3 workflows/scripts/connect-local.py \
@@ -82,3 +82,13 @@ python3 workflows/scripts/check-local.py --employee-webhook
 Verified locally: missing credential → 403; incorrect credential → 403; correct credential with invalid body `{}` → 400 from deterministic validation. Connectivity, department lookup, callback-schema rejection, backend health and Mailpit checks also pass. These checks do not create or change employees/jobs.
 
 Resuming the real employee job transmits the employee's first/last name, department, role and start date plus department facts to OpenAI via the local agents. Personal email, passwords and invitation tokens are excluded from model prompts. Automatic approval review required explicit owner approval for that specific external transmission; the local fix and non-mutating checks are complete independently of approval.
+
+## Model-schema correction and audited local recovery
+
+The first dispatch (execution **11**) reached the Coordinator but could not initialize its OpenAI Chat Model: node version 1.2 reads `model.value`, while the exports/local renderer supplied a plain string. Both exports and the local renderer now supply an n8n resource locator `{__rl:true,mode:"id",value:...}`. The corrected execution **14** actually ran both subagents and the department tool; event metadata and the persisted callback independently confirm success.
+
+Migration `002_job_attempt_history.sql` adds an append-only-by-application history array to the existing job. A local-only operator command, `node dist/retry-local-job.js <employee-id> <expected-attempts> "<reviewed technical reason>"`, can archive a reviewed terminal `AGENT_PROCESSING_FAILED` result and return that same job to unavailable. It requires dispatch to be disabled, a pending employee, development/test mode, and an exact attempt count. It does not change employee status, HR accounts, approval, invitations, IDs or the existing attempt counter. It is not exposed over HTTP or to agents. The regression test verifies those guards, exact failure preservation and rejection of repeated recovery.
+
+After an explicit recovery, `connect-local.py` requires that archived history and moves only that job's failed local n8n dedup record into `archivedAttempts` before normal reprocessing. The original PostgreSQL callback and n8n dedup failure are both retained. Normal terminal callbacks remain immutable; no synthetic completion is written. This recovery was used only for the authorized existing test after the diagnosed model-schema error.
+
+The owner explicitly approved the real AI test's specified prompt fields. Personal email and authentication/activation secrets were excluded. Worker dispatch remains scoped to the authorized employee. Next action is **manual HR review and approval** on the existing detail page; only HR may then send the invitation, and only the employee chooses activation credentials.

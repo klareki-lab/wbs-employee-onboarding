@@ -19,3 +19,11 @@ Critical test assertions cover unauthenticated HR rejection, separate department
 Local API port 3001 was already occupied, so the packaged container smoke ran on **localhost:3009** through the configurable `API_PORT`; the pre-existing service was left running. PostgreSQL and Mailpit use the isolated `wbs-employee-onboarding` Compose project. Tests use `onboarding_test`, and no unrelated schemas are touched.
 
 Not verified: real n8n agents/workflow, external inbox delivery, production HTTPS/proxy routing, or Hetzner deployment. These require newly provisioned workflows, credentials and separately authorized deployment configuration. SMTP acceptance is never represented as final inbox delivery.
+
+## Owner-authorized real AI test — 2026-10-27
+
+Existing employee `71fac882-8236-4641-98d5-86ffd1b60ab1`, same job `c4007247-e99e-4a31-8eb4-0f4462648996`: completed via authenticated backend callback in local n8n execution **14**. Node-finished event metadata confirms Coordinator, Info Agent, department HTTP tool, Welcome Agent, output validator, completed callback and terminal persistence. Result team lead/accounts exactly match the department registry; German welcome text is persisted.
+
+Initial execution **11** failed before successful model initialization because OpenAI Chat Model v1.2 requires a `model.value` resource locator. Exports/rendering were corrected. The failed callback and failed n8n dedup record were archived, preserving the same employee/job IDs and cumulative attempt count (2). Migration and guarded recovery tests passed in `onboarding_test`; build passed.
+
+Read-only verification: employee status pending, approved_at/approved_by null, no invitations and no employee account. Existing HR account tessa preserved; total employee count remains 2. Chrome shows completed processing and enabled HR approval, with invitation sending disabled. No automatic approval, invitation or external account provisioning was performed for this employee. Production/Messe Hub untouched.

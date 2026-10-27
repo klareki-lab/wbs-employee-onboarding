@@ -1,10 +1,15 @@
 #!/usr/bin/env python3
 """Prepare isolated n8n imports. Secrets stay in ignored 0600 local files."""
 import json
+import argparse
+import subprocess
 import os
 import secrets
 from pathlib import Path
 
+parser = argparse.ArgumentParser()
+parser.add_argument('--retry-job-id')
+args = parser.parse_args()
 ROOT = Path(__file__).resolve().parents[2]
 os.chdir(ROOT)
 LOCAL = ROOT / 'workflows/.local'
@@ -65,7 +70,21 @@ for n in workflow['nodes']:
     if 'url' in n['parameters']:
         n['parameters']['url']=n['parameters']['url'].replace('={{ $env.BACKEND_BASE_URL }}','http://api:3001')
     if n['type'].endswith('.lmChatOpenAi'):
-        n['parameters']['model']=env.get('OPENAI_MODEL','gpt-4o-mini')
+        n['parameters']['model']={'__rl':True,'mode':'id','value':env.get('OPENAI_MODEL','gpt-4o-mini')}
+if args.retry_job_id:
+    # Preserve the previous failed n8n dedup record rather than removing history.
+    script="const {DatabaseSync}=require('node:sqlite');const db=new DatabaseSync('/home/node/.n8n/database.sqlite',{readOnly:true});const r=db.prepare('SELECT staticData FROM workflow_entity WHERE id=?').get('wbsOnboardingLocal');console.log(r?.staticData||'null');"
+    result=subprocess.run(['docker','exec','wbs-employee-onboarding-n8n-1','node','-e',script],capture_output=True,check=True)
+    static=json.loads(result.stdout) or {}
+    global_data=static.setdefault('global',{})
+    jobs=global_data.setdefault('jobs',{})
+    previous=jobs.get(args.retry_job_id)
+    if previous:
+        if previous.get('status')!='failed':
+            raise SystemExit('Only a failed dedup record may be archived for an explicit local retry.')
+        global_data.setdefault('archivedAttempts',[]).append({'job_id':args.retry_job_id,'record':previous})
+        del jobs[args.retry_job_id]
+    workflow['staticData']=static
 private_write(BOOTSTRAP/'onboarding.json',json.dumps(workflow,ensure_ascii=False))
 
 # A real n8n connectivity workflow: authenticated reads and a rejected (non-mutating) callback.

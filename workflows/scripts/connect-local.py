@@ -41,7 +41,7 @@ print('OpenAI model/tool-call readiness passed; no employee information sent in 
 
 status_code="""
 import {pool} from './dist/repositories/db.js';
-const result=await pool.query('SELECT e.status,j.processing_status,j.attempts,j.orchestration_result IS NOT NULL AS has_result FROM employees e JOIN onboarding_jobs j ON j.employee_id=e.id WHERE e.id=$1',[process.env.TARGET_EMPLOYEE_ID]);
+const result=await pool.query('SELECT e.status,j.id AS job_id,j.processing_status,j.attempts,jsonb_array_length(j.attempt_history) AS archived_attempts,j.orchestration_result IS NOT NULL AS has_result FROM employees e JOIN onboarding_jobs j ON j.employee_id=e.id WHERE e.id=$1',[process.env.TARGET_EMPLOYEE_ID]);
 console.log(JSON.stringify(result.rows[0]||null));await pool.end();
 """
 def status():
@@ -55,7 +55,12 @@ if state['has_result'] or state['processing_status'] not in ['unavailable','queu
 if state['status']!='pending':
     raise SystemExit('Employee is no longer pending; no dispatch performed.')
 
-subprocess.run([sys.executable,'workflows/scripts/prepare-local.py'],check=True)
+prepare=[sys.executable,'workflows/scripts/prepare-local.py']
+if state['attempts']>0:
+    if not state['archived_attempts']:
+        raise SystemExit('A previous attempt must be explicitly archived by the local recovery command before retry.')
+    prepare.extend(['--retry-job-id',state['job_id']])
+subprocess.run(prepare,check=True)
 # Preparation may have generated the independent webhook secret on a fresh setup.
 for line in env_path.read_text().splitlines():
     if '=' in line and not line.lstrip().startswith('#'):

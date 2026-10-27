@@ -222,7 +222,11 @@
     },
     {
       "parameters": {
-        "model": "={{ $env.OPENAI_MODEL || 'gpt-4o-mini' }}",
+        "model": {
+          "__rl": true,
+          "mode": "id",
+          "value": "={{ $env.OPENAI_MODEL || 'gpt-4o-mini' }}"
+        },
         "options": {
           "temperature": 0.1,
           "maxTokens": 800
@@ -263,7 +267,11 @@
     },
     {
       "parameters": {
-        "model": "={{ $env.OPENAI_MODEL || 'gpt-4o-mini' }}",
+        "model": {
+          "__rl": true,
+          "mode": "id",
+          "value": "={{ $env.OPENAI_MODEL || 'gpt-4o-mini' }}"
+        },
         "options": {
           "temperature": 0,
           "maxTokens": 400
@@ -338,7 +346,11 @@
     },
     {
       "parameters": {
-        "model": "={{ $env.OPENAI_MODEL || 'gpt-4o-mini' }}",
+        "model": {
+          "__rl": true,
+          "mode": "id",
+          "value": "={{ $env.OPENAI_MODEL || 'gpt-4o-mini' }}"
+        },
         "options": {
           "temperature": 0.4,
           "maxTokens": 400
