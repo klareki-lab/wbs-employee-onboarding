@@ -27,3 +27,8 @@ export function mayApprove(status: EmployeeStatus, processing: ProcessingStatus)
   return status === 'pending' && processing === 'completed';
 }
 export function maySendInvitation(status: EmployeeStatus): boolean { return status === 'approved'; }
+
+// Only live processing states poll; failures/completion remain explicit terminal states.
+export function isProcessing(status?: ProcessingStatus): boolean {
+  return status === 'queued' || status === 'dispatching' || status === 'awaiting_result';
+}

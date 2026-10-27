@@ -6,7 +6,6 @@ const schema = z.object({
     .default("development"),
   PORT: z.coerce.number().int().positive().default(3001),
   DATABASE_URL: z.string().min(1),
-  ONBOARDING_WORKER_EMPLOYEE_ID: z.uuid().optional(),
   APP_ORIGIN: z.url().default("http://localhost:5173"),
   N8N_ONBOARDING_WEBHOOK_URL: z.url().optional(),
   N8N_ONBOARDING_WEBHOOK_SECRET: z.string().min(32).optional(),

@@ -7,12 +7,10 @@ export async function dispatchOne() {
   if (!n8nConfigured) return;
   const job = await transaction(async (db) => {
     await db.query(
-      "UPDATE onboarding_jobs SET processing_status='queued', updated_at=now() WHERE processing_status='unavailable' AND ($1::uuid IS NULL OR employee_id=$1)",
-      [config.ONBOARDING_WORKER_EMPLOYEE_ID ?? null],
+      "UPDATE onboarding_jobs SET processing_status='queued', updated_at=now() WHERE processing_status='unavailable'",
     );
     const found = await db.query(
-      "SELECT * FROM onboarding_jobs WHERE ((processing_status='queued' AND next_attempt_at<=now()) OR (processing_status='dispatching' AND lease_until<now())) AND ($1::uuid IS NULL OR employee_id=$1) ORDER BY created_at FOR UPDATE SKIP LOCKED LIMIT 1",
-      [config.ONBOARDING_WORKER_EMPLOYEE_ID ?? null],
+      "SELECT * FROM onboarding_jobs WHERE ((processing_status='queued' AND next_attempt_at<=now()) OR (processing_status='dispatching' AND lease_until<now())) ORDER BY created_at FOR UPDATE SKIP LOCKED LIMIT 1",
     );
     if (!found.rowCount) return null;
     return (

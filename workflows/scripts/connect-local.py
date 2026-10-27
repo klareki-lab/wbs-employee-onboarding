@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Enable one existing employee's real AI run after credential/network preflight."""
+"""Enable automatic local onboarding and observe one existing employee after preflight."""
 import argparse
 import json
 import os
@@ -71,18 +71,30 @@ if result.returncode:raise SystemExit('Local employee workflow publication faile
 subprocess.run(['docker','restart','wbs-employee-onboarding-n8n-1'],check=True,stdout=subprocess.DEVNULL)
 subprocess.run([sys.executable,'workflows/scripts/check-local.py','--employee-webhook'],check=True)
 
-updates={'N8N_ONBOARDING_WEBHOOK_URL':'http://n8n:5678/webhook/wbs-onboarding','ONBOARDING_WORKER_EMPLOYEE_ID':employee_id}
-lines=[line for line in env_path.read_text().splitlines() if line.split('=',1)[0] not in updates]
+updates={'N8N_ONBOARDING_WEBHOOK_URL':'http://n8n:5678/webhook/wbs-onboarding'}
+lines=[line for line in env_path.read_text().splitlines() if line.split('=',1)[0] not in {*updates,'ONBOARDING_WORKER_EMPLOYEE_ID'}]
 lines.extend(f'{k}={v}' for k,v in updates.items())
 env_path.write_text('\n'.join(lines)+'\n');env_path.chmod(0o600)
-subprocess.run(['docker','compose','--env-file','backend/.env','-f','backend/compose.yaml','-f','backend/compose.n8n.yaml','up','--build','-d','api'],check=True)
-print('Backend connected to local n8n. Only the selected existing employee is eligible for dispatch; no registration was created.')
+compose=['docker','compose','--env-file','backend/.env']
+# Preserve an already configured real SMTP profile during n8n bootstrap/recovery.
+if (ROOT/'backend/.env.smtp').exists() and env.get('SMTP_MODE')!='capture':
+    from_env={}
+    for line in (ROOT/'backend/.env.smtp').read_text().splitlines():
+        if '=' in line and not line.lstrip().startswith('#'):
+            k,v=line.split('=',1);from_env[k.strip()]=v.strip().strip(chr(34)+chr(39))
+    real_smtp=all(from_env.get(k) for k in ['SMTP_HOST','SMTP_USER','SMTP_PASSWORD','SMTP_FROM']) and not from_env.get('SMTP_HOST','').endswith('.invalid')
+else: real_smtp=False
+if real_smtp: compose.extend(['--env-file','backend/.env.smtp'])
+compose.extend(['-f','backend/compose.yaml','-f','backend/compose.n8n.yaml'])
+if real_smtp: compose.extend(['-f','backend/compose.smtp.yaml'])
+subprocess.run(compose+['up','--build','-d','api'],check=True)
+print('Backend connected to local n8n. All eligible jobs and future registrations are dispatched automatically; the selected employee is observed only, not a worker restriction.')
 for attempt in range(45):
     state=status()
     if state['processing_status'] in ['completed','failed']:
         print('Existing job processing_status:',state['processing_status'])
         if state['processing_status']=='completed':
-            print('Real processing completed. HR approval is enabled; approve and send the invitation in the HR dashboard, then open it in Mailpit.')
+            print('Real processing completed. HR approval is enabled; approve and send the invitation in the HR dashboard, then verify its configured delivery status and actual recipient inbox.')
         else:
             print('Processing failed. Inspect the existing job; no reset or synthetic completion was attempted.')
         break

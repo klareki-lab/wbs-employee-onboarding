@@ -9,7 +9,7 @@ The safe connection is a new, isolated n8n 2.41.7 container on the existing **on
 - The callback probe sends `{}` and confirms HTTP 400 `VALIDATION_ERROR`, demonstrating authentication and routing without changing any employee or onboarding job.
 - Backend health is `ok`. Real-inbox acceptance now follows [real-smtp.md](real-smtp.md); delivery is disabled until independent SMTP settings pass verification. No invitation for the authorized employee has been sent.
 - Existing employee **Sergii Tytov**, ID `71fac882-8236-4641-98d5-86ffd1b60ab1`, has job `c4007247-e99e-4a31-8eb4-0f4462648996`. It is now `completed` after the reviewed model-initialization failure was corrected. The same job has two dispatch attempts, with the first failed result retained in `attempt_history`. The employee is still pending HR approval. No duplicate employee has been created.
-- The earlier smoke-test employee is preserved separately and excluded by the selected-employee worker scope.
+- The single-employee guard used for the first controlled test is retired from the worker and configuration. After authorized rollout, all eligible queued/unavailable jobs are dispatched; completed/failed jobs are not re-claimed.
 - **Real AI processing verified:** local execution **14** ran the Coordinator, `onboarding_info`, `departments_api`, and `welcome_announcement`, then output validation, `Callback: Completed`, and terminal persistence. The authenticated callback is stored in PostgreSQL. Team lead Sarah Miller and GitHub/Google Workspace/Jira match the department registry. Chrome shows HR approval enabled; sending remains disabled until HR approves. No approval or invitation was performed for this employee.
 
 ## Bootstrap/resume command (already executed for the authorized employee)
@@ -29,10 +29,9 @@ With readiness confirmed, it verifies the selected employee already exists and i
 
 ```ini
 N8N_ONBOARDING_WEBHOOK_URL=http://n8n:5678/webhook/wbs-onboarding
-ONBOARDING_WORKER_EMPLOYEE_ID=71fac882-8236-4641-98d5-86ffd1b60ab1
 ```
 
-The backend is rebuilt/restarted using the local overlay. The existing unavailable job automatically becomes queued and is dispatched by the normal durable worker. No database status reset, artificial callback, new registration or account creation is used. The optional employee scope limits both recovery of unavailable jobs and queue claims to this employee. Remove that scope from local configuration and recreate the API only when ready to process other registrations normally.
+The backend is rebuilt/restarted using the local overlay. The existing unavailable job automatically becomes queued and is dispatched by the normal durable worker. No database status reset, artificial callback, new registration or account creation is used. There is no employee-specific dispatcher filter. `--employee-id` selects the existing record to observe during bootstrap; it never restricts worker claims. Do not rerun bootstrap for each registration: the running worker automatically claims every eligible queued job. The bootstrap removes the obsolete test setting and preserves an already configured real SMTP overlay.
 
 The command observes the job for up to 45 seconds; slow AI processing may continue afterward. Refresh the existing employee detail page. An actual terminal failure must be investigated rather than overwritten or silently retried with a new employee.
 
@@ -91,4 +90,16 @@ Migration `002_job_attempt_history.sql` adds an append-only-by-application histo
 
 After an explicit recovery, `connect-local.py` requires that archived history and moves only that job's failed local n8n dedup record into `archivedAttempts` before normal reprocessing. The original PostgreSQL callback and n8n dedup failure are both retained. Normal terminal callbacks remain immutable; no synthetic completion is written. This recovery was used only for the authorized existing test after the diagnosed model-schema error.
 
-The owner explicitly approved the real AI test's specified prompt fields. Personal email and authentication/activation secrets were excluded. Worker dispatch remains scoped to the authorized employee. Next action is **manual HR review and approval** on the existing detail page; only HR may then send the invitation, and only the employee chooses activation credentials.
+The owner explicitly approved the real AI test's specified prompt fields. Personal email and authentication/activation secrets were excluded. The former per-employee test restriction is removed from the implementation; activating automatic processing requires the owner's authorization for the real pipeline's employee-data transmission. Next action is **manual HR review and approval** on the existing detail page; only HR may then send the invitation, and only the employee chooses activation credentials.
+
+## Automatic processing after the controlled test
+
+Root cause of the second registration remaining queued: the retired `ONBOARDING_WORKER_EMPLOYEE_ID` configuration still selected the first, already-completed employee, and the bootstrap wrote that restriction back on each run. A different queued employee could never be claimed, so it stayed at zero attempts. The live n8n workflow and webhook authentication were healthy; disabled approval/invitation controls correctly reflected unfinished processing.
+
+The worker/config/Compose/template no longer support that filter. Bootstrap now configures automatic processing, uses its employee argument only for observation, cleans up the retired setting, and retains real SMTP when that profile is configured. Leases, SKIP LOCKED claims, retry delay/limit, stable job IDs/idempotency keys, callback authentication/state validation and HR approval rules are unchanged. Existing queued records require no reset or duplicate registration.
+
+HR detail/list pages now refresh live queued/dispatching/awaiting-result states every three seconds while visible. Completed and failed states stop polling, remain explicitly labeled, and only successful completion of a pending employee enables manual approval. The polling code only performs reads; it cannot approve or send.
+
+Regression: a real HTTP/PostgreSQL test with a mock orchestrator processes the first employee, registers the second afterward, observes automatic dispatch, injects one webhook 503, verifies retry delay and the unchanged job/idempotency key, then stores a validated completion callback. The first result stays unchanged, no duplicate employee/job is created, and the second remains unapproved with zero invitations. The retired environment setting cannot filter these jobs even if supplied. Test database: onboarding_dispatch_test; SMTP disabled; no real AI or email used by this regression. All 29 frontend tests and both builds pass.
+
+Runtime rollout of this fix is pending explicit employee-data/destination authorization: automatic approval review rejected restarting the API because that would send the newly registered employee's onboarding facts to OpenAI. No workaround, job reset, invented result, approval or invitation has been performed. The existing second job is still queued with zero attempts until that authorization is resolved. The owner has been asked to authorize the specified prompt fields for that employee and future HR registrations, excluding personal email and all authentication/activation secrets.

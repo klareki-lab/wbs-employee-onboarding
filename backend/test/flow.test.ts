@@ -142,23 +142,11 @@ test("real PostgreSQL + SMTP onboarding, concurrency and authorization", async (
         .status,
       409,
     );
-    // Scope recovery and dispatch to one existing employee, excluding unrelated local jobs.
+    // Previously unavailable jobs recover automatically when the configured worker runs.
     await pool.query(
       "UPDATE onboarding_jobs SET processing_status='unavailable' WHERE employee_id=$1",
       [id],
     );
-    config.ONBOARDING_WORKER_EMPLOYEE_ID =
-      "00000000-0000-4000-8000-000000000001";
-    await dispatchOne();
-    const excluded = (
-      await pool.query(
-        "SELECT processing_status,attempts FROM onboarding_jobs WHERE employee_id=$1",
-        [id],
-      )
-    ).rows[0];
-    assert.equal(excluded.processing_status, "unavailable");
-    assert.equal(excluded.attempts, 0);
-    config.ONBOARDING_WORKER_EMPLOYEE_ID = id;
     await dispatchOne();
     assert.equal(
       (await call(`/api/hr/employees/${id}`)).data.data.processing_status,

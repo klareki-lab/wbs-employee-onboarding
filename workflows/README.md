@@ -8,7 +8,7 @@ Importable, **unpublished** n8n workflows for the WBS Employee Onboarding Assist
 
 ## Isolated local integration
 
-Local n8n can now run at **http://localhost:5681** without exposing the backend or touching production. See [local-n8n.md](../docs/local-n8n.md) for the verified bootstrap, credential storage, connection probe, and single-existing-employee resume command. The employee workflow stays unpublished until an onboarding-authorized OpenAI key passes a model/tool-call preflight.
+Local n8n can now run at **http://localhost:5681** without exposing the backend or touching production. See [local-n8n.md](../docs/local-n8n.md) for the verified bootstrap, credential storage, connection probe, and automatic-dispatch bootstrap/observation command. The employee workflow stays unpublished until an onboarding-authorized OpenAI key passes a model/tool-call preflight.
 
 ## Files
 
@@ -150,3 +150,7 @@ Known terminal duplicates short-circuit to `200 replayed` before any agent runs.
 - Does not reuse Trade Fair webhook keys or any production credential.
 - Does not modify the backend, DNS, SMTP or the production database.
 - Does not merge into `main`; a Draft PR is opened for combined integration review.
+
+## Automatic registrations
+
+Once the owner-authorized local pipeline is configured, each valid HR registration creates its own durable queued job and the worker processes it without re-importing n8n or running a per-employee setup command. The retired one-employee test setting is not supported. Bootstrap's employee ID is only the record to observe; it does not filter dispatch. Existing completed results and callback authentication/idempotency remain intact. See [automatic dispatch verification](../docs/local-n8n.md#automatic-processing-after-the-controlled-test).

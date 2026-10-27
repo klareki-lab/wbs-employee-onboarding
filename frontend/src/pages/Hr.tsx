@@ -1,7 +1,8 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowRight, Clock3, Plus, Search, Send, ShieldCheck, Users } from 'lucide-react';
 import { api, apiMessage } from '../api/client';
+import { isProcessing } from '../lib/status';
 import type { Employee } from '../api/types';
 import { PageHeader, StatusBadge, ProcessingBadge, InlineAlert } from '../components/UI';
 
@@ -14,16 +15,26 @@ export function HrPage() {
   const [busy, setBusy] = useState(true);
   const [error, setError] = useState('');
   const [search, setSearch] = useState('');
-  const load = useCallback(async () => {
-    setBusy(true); setError('');
+  const requestVersion = useRef(0);
+  const reading = useRef(false);
+  const load = useCallback(async (silent = false) => {
+    if (silent && reading.current) return;
+    const version = ++requestVersion.current; reading.current = true;
+    if (!silent) { setBusy(true); setError(''); }
     try {
       const result = await api.listEmployees(pageSize, offset);
       if (!Array.isArray(result?.employees)) throw new Error('Ungültige Mitarbeiterliste.');
-      setEmployees(result.employees); setPagination(result.pagination);
-    } catch (err) { setError(apiMessage(err)); }
-    finally { setBusy(false); }
+      if (version === requestVersion.current) { setEmployees(result.employees); setPagination(result.pagination); setError(''); }
+    } catch (err) { if (version === requestVersion.current) setError(apiMessage(err)); }
+    finally { if (version === requestVersion.current) { reading.current = false; setBusy(false); } }
   }, [offset]);
-  useEffect(() => { void load(); }, [load]);
+  useEffect(() => { void load(); return () => { ++requestVersion.current; reading.current = false; }; }, [load]);
+  const hasProcessing = employees.some(employee => isProcessing(employee.processing_status));
+  useEffect(() => {
+    if (!hasProcessing) return;
+    const timer = window.setInterval(() => { if (document.visibilityState === 'visible') void load(true); }, 3000);
+    return () => window.clearInterval(timer);
+  }, [hasProcessing, load]);
   const filtered = useMemo(() => employees.filter(e => `${e.first_name} ${e.last_name} ${e.personal_email} ${e.department}`.toLowerCase().includes(search.toLowerCase())), [employees, search]);
   const pendingApproval = employees.filter(e => e.status === 'pending' && e.processing_status === 'completed').length;
   const completed = employees.filter(e => e.processing_status === 'completed').length;
