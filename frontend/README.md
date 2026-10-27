@@ -12,7 +12,7 @@ cp .env.example .env
 npm run dev
 ```
 
-Open `http://127.0.0.1:5173`. The app expects `/api` to be served by Codex's backend; without it, protected pages deliberately show an unavailable session/connection state. **There are no fake employees, fake invitation links, mock login or fake success notifications.** The `/activate` page is accessible without a session but requires a real invitation token from Codex's backend.
+Open `http://localhost:5173`. The app expects `/api` to be served by Codex's backend; without it, protected pages deliberately show an unavailable session/connection state. **There are no fake employees, fake invitation links, mock login or fake success notifications.** The `/activate` page is accessible without a session but requires a real invitation token from Codex's backend.
 
 For a separately running local backend, put this in `.env`:
 
@@ -73,4 +73,4 @@ For production, serve `dist/` behind an HTTPS host with a **single-page applicat
 
 ## Integration status
 
-Frontend implementation complete; **not end-to-end integrated**. Backend delivery, invitation SMTP/service, real sessions and deployment remain Codex/integration responsibilities. No dependencies installed in the creation environment (npm registry DNS unavailable); build/runtime still need to be verified after npm install in a network-connected environment.
+The integration branch builds successfully and runs locally with the Docker backend and Mailpit. Use `localhost:5173` consistently: the backend validates `APP_ORIGIN`, so substituting `127.0.0.1` rejects POST requests. The development server uses a strict port to keep this origin stable. See [local startup](../docs/local-startup.md) for the verified Mac configuration and secure interactive HR provisioning. Real n8n orchestration remains unavailable until a new workflow and credentials are configured.
