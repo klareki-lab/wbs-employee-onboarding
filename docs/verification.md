@@ -25,6 +25,7 @@ The verification harness supplied an already authorized OpenAI key through a pri
 | Built frontend proxy | Application HTTP 200; unauthenticated same-origin `/api/auth/me` → 401 |
 | Real external SMTP | Resend authentication and mandatory TLS/certificate verification passed; no email sent by verification |
 | Routine `up` | Repeat startup retains workflow imports/history, database/accounts and generated secrets; no reimport |
+| Interactive HR provisioning | Passed through a pseudo-terminal with randomized synthetic credentials; hidden password was not echoed |
 
 ## Real AI and synthetic end-to-end test
 
@@ -63,7 +64,7 @@ They cover auth initialization races, account switching, activation-to-login ide
 
 ## Security and remaining limits
 
-- Local install config, n8n plaintext bootstrap artifacts, encryption keys, provider keys and all `.env*` secrets are Git-ignored and excluded from Docker build contexts. No shared HR account/password is shipped. Database passwords and bearer/encryption secrets are generated independently per install.
+- Local install config, n8n plaintext bootstrap artifacts, encryption keys, provider keys and all `.env*` secrets are Git-ignored and excluded from Docker build contexts. The local frontend proxy disables request/error logging to avoid retaining activation-validation token query strings. No shared HR account/password is shipped. Database passwords and bearer/encryption secrets are generated independently per install.
 - Current documentation is sanitized of previous real employee identities, account usernames and installation-specific employee/job IDs. Earlier commits retain previously published documentation; no Git history rewrite was performed. Owner privacy review of that historical documentation is a release consideration before broader redistribution/tagging.
 - AI prompt construction excludes personal email, passwords, session credentials and invitation tokens. Local event metadata and backend state prove completion; execution payload retention is disabled in n8n.
 - Host verification used macOS with Docker Desktop/Linux containers. Native Windows PowerShell/ACLs and a native Linux host were **not executed** here; their Python/Docker commands are documented but require platform acceptance. Linux application/container builds and tests passed.
