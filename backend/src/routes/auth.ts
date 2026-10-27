@@ -7,10 +7,16 @@ import {
   verifyPassword,
   randomToken,
   digest,
+  equal,
 } from "../auth/security.js";
-import { authenticate, csrf, role } from "../middleware/auth.js";
+import { authenticate, role } from "../middleware/auth.js";
 import { ApiError } from "../middleware/errors.js";
 import { config } from "../config/index.js";
+import {
+  findPrincipal,
+  sessionCookieName,
+  sessionCookieOptions,
+} from "../auth/session.js";
 export const auth = Router();
 const attempts = rateLimit({
   windowMs: 15 * 60 * 1000,
@@ -20,12 +26,6 @@ const attempts = rateLimit({
   message: { error: { code: "RATE_LIMITED" } },
 });
 const dummyHash = hashPassword(randomToken());
-const cookieOptions = {
-  httpOnly: true,
-  secure: config.NODE_ENV === "production",
-  sameSite: "lax" as const,
-  path: "/",
-};
 auth.post("/auth/login", attempts, async (req, res) => {
   const input = z
     .object({
@@ -47,9 +47,18 @@ auth.post("/auth/login", attempts, async (req, res) => {
   const token = randomToken(),
     csrfToken = randomToken();
   await transaction(async (db) => {
-    if (typeof req.cookies?.session === "string")
+    // Serialize against password rotation: an old verified hash cannot create a new session.
+    const current = (
+      await db.query(
+        "SELECT password_hash FROM user_accounts WHERE id=$1 FOR UPDATE",
+        [user.id],
+      )
+    ).rows[0];
+    if (!current || current.password_hash !== user.password_hash)
+      throw new ApiError(401, "INVALID_CREDENTIALS");
+    if (typeof req.cookies?.[sessionCookieName] === "string")
       await db.query("DELETE FROM sessions WHERE token_hash=$1", [
-        digest(req.cookies.session),
+        digest(req.cookies[sessionCookieName]),
       ]);
     await db.query("DELETE FROM sessions WHERE expires_at<=now()");
     await db.query(
@@ -58,8 +67,8 @@ auth.post("/auth/login", attempts, async (req, res) => {
     );
   });
   res
-    .cookie("session", token, {
-      ...cookieOptions,
+    .cookie(sessionCookieName, token, {
+      ...sessionCookieOptions,
       maxAge: config.SESSION_HOURS * 3600000,
     })
     .json({
@@ -97,12 +106,22 @@ auth.get("/auth/me", authenticate, async (req, res) => {
     },
   });
 });
-auth.post("/auth/logout", authenticate, csrf, async (req, res) => {
-  await pool.query("DELETE FROM sessions WHERE token_hash=$1", [
-    digest(req.cookies.session),
-  ]);
+auth.post("/auth/logout", async (req, res) => {
+  const principal = await findPrincipal(req);
+  if (
+    principal &&
+    !equal(req.get("X-CSRF-Token") ?? "", principal.csrf_token)
+  ) {
+    throw new ApiError(403, "CSRF_INVALID");
+  }
+  const token = req.cookies?.[sessionCookieName];
+  if (typeof token === "string")
+    await pool.query("DELETE FROM sessions WHERE token_hash=$1", [
+      digest(token),
+    ]);
+  // An already-expired/missing session is also successfully logged out. Origin is still enforced.
   res
-    .clearCookie("session", cookieOptions)
+    .clearCookie(sessionCookieName, sessionCookieOptions)
     .json({ data: { logged_out: true } });
 });
 auth.get("/employee/dashboard", authenticate, role("employee"), (req, res) => {

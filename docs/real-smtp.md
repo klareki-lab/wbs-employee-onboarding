@@ -4,7 +4,7 @@ The primary acceptance path is now an invitation in the employee's actual person
 
 ## Current state
 
-No independently authorized SMTP host, username/password or real sender has been provided. The running local app therefore uses **`SMTP_MODE=disabled`** rather than silently capturing acceptance invitations in Mailpit. The approved-to-send guard is unchanged. For employee `71fac882-8236-4641-98d5-86ffd1b60ab1`, AI processing is completed and HR approval has now been recorded (2026-10-27 17:04 UTC). No invitation exists and no external invitation has been sent. The implementation did not approve the employee; the existing HR approval is preserved.
+The owner has configured real Resend SMTP in the ignored local profile. The running API uses `SMTP_MODE=external` with `smtp.resend.com`. The owner confirmed actual inbox receipt and activation; the original employee is now active, with one used invitation and the completed AI result preserved. The subsequent authentication fix sends no additional invitation and keeps the SMTP profile unchanged. Mailpit remains only for explicit regression fixtures.
 
 ## Exact owner configuration
 

@@ -1,5 +1,6 @@
 import { BrowserRouter, Navigate, Outlet, Route, Routes, useLocation } from 'react-router-dom';
 import { AuthProvider, useAuth } from './auth/AuthContext';
+import { mayAccess, roleHome } from './auth/routes';
 import { Layout, SessionError } from './components/Layout';
 import { CenterState } from './components/UI';
 import { HrPage } from './pages/Hr';
@@ -15,7 +16,7 @@ function Protected({ role }: { role: 'hr' | 'employee' }) {
   if (status === 'checking') return <div className="global-state"><CenterState busy title="Sitzung wird geprüft" detail="Einen Moment bitte …" /></div>;
   if (status === 'unavailable') return <SessionError retry={() => void refresh().catch(() => undefined)} />;
   if (!user) return <Navigate to="/login" replace state={{ from: location.pathname }} />;
-  if (user.role !== role) return <div className="global-state"><CenterState title="Keine Berechtigung" detail="Dieses Konto hat keinen Zugriff auf diesen Bereich." /></div>;
+  if (!mayAccess(user.role, role)) return <div className="global-state"><CenterState title="Keine Berechtigung" detail="Dieses Konto hat keinen Zugriff auf diesen Bereich." /></div>;
   return <Outlet />;
 }
 function Home() {
@@ -23,7 +24,7 @@ function Home() {
   if (status === 'checking') return <div className="global-state"><CenterState busy title="Sitzung wird geprüft" /></div>;
   if (status === 'unavailable') return <SessionError retry={() => window.location.reload()} />;
   if (!user) return <Navigate replace to="/login" />;
-  return <Navigate replace to={user.role === 'hr' ? '/hr' : '/dashboard'} />;
+  return <Navigate replace to={roleHome(user.role)} />;
 }
 export function App() {
   return <BrowserRouter><AuthProvider><Routes>

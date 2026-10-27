@@ -74,3 +74,9 @@ For production, serve `dist/` behind an HTTPS host with a **single-page applicat
 ## Integration status
 
 The integration branch builds successfully and runs locally with the Docker backend and Mailpit. Use `localhost:5173` consistently: the backend validates `APP_ORIGIN`, so substituting `127.0.0.1` rejects POST requests. The development server uses a strict port to keep this origin stable. See [local startup](../docs/local-startup.md) for the verified Mac configuration and secure interactive HR provisioning. Real n8n orchestration remains unavailable until a new workflow and credentials are configured.
+
+## Authentication and account switching
+
+Use the exact username returned at activation; employee names do not substitute for usernames. The login page now distinguishes invalid credentials from an expired session and explicitly shows any existing browser identity. It does not auto-redirect an HR browser during employee activation/login. Login identity and the subsequently verified profile must match, and late auth responses cannot restore an old identity/CSRF token. Use separate normal/private browser profiles for simultaneous HR and employee sessions.
+
+The app-specific cookie requires one fresh login after this update. See [authentication.md](../docs/authentication.md) for cookie isolation, regression results, the local hidden-entry password rotation command, and the remaining manual Incognito acceptance check. No authentication secrets are stored in localStorage.

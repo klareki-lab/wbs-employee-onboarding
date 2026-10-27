@@ -1,3 +1,4 @@
+import { fallbackApiMessage } from './error-message';
 import type {
   ActivationRequest, ActivationResponse, ApiEnvelope, ApiErrorBody, ApprovalResponse,
   AuthMeResponse, Employee, EmployeeDetails, EmployeeListResponse,
@@ -9,11 +10,10 @@ const configuredBase = (import.meta.env.VITE_API_BASE_URL || '/api').trim();
 const API_BASE = configuredBase.replace(/\/$/, '');
 // The CSRF token is intentionally held in module memory, never in browser storage.
 let csrfToken: string | null = null;
-function retainCsrf(value: string): void {
-  if (!value || typeof value !== 'string') throw new ApiError('CSRF-Token fehlt in der Serverantwort.', 0, 'CSRF_MISSING');
+export function setCsrfToken(value: string | null): void {
+  if (value !== null && (!value || typeof value !== 'string')) throw new ApiError('CSRF-Token fehlt in der Serverantwort.', 0, 'CSRF_MISSING');
   csrfToken = value;
 }
-export function clearCsrf(): void { csrfToken = null; }
 
 export class ApiError extends Error {
   constructor(
@@ -56,13 +56,7 @@ async function requestEnvelope<T>(path: string, options: RequestInit = {}, authe
       const fieldErrors = Array.isArray(data.fields)
         ? Object.fromEntries(data.fields.filter(item => item && typeof item.path === 'string' && typeof item.message === 'string').map(item => [item.path, item.message]))
         : undefined;
-      const fallback = response.status === 401 ? 'Anmeldung erforderlich oder Sitzung abgelaufen.'
-        : response.status === 403 ? 'Keine Berechtigung f\u00fcr diesen Vorgang.'
-        : response.status === 410 ? 'Einladung ung\u00fcltig oder nicht mehr nutzbar.'
-        : response.status === 409 ? 'Dieser Vorgang steht im Konflikt mit vorhandenen Daten.'
-        : response.status === 429 ? 'Zu viele Anfragen. Bitte sp\u00e4ter erneut versuchen.'
-        : 'Der Server konnte die Anfrage nicht verarbeiten.';
-      if (response.status === 401) clearCsrf();
+      const fallback = fallbackApiMessage(response.status, code);
       throw new ApiError(err?.message || data.message || fallback, response.status, code, fieldErrors);
     }
     if (!body || typeof body !== 'object' || !Object.prototype.hasOwnProperty.call(body, 'data')) {
@@ -97,18 +91,15 @@ export const api = {
   activate: (data: ActivationRequest) => request<ActivationResponse>('/invitations/activate', { method: 'POST', body: json(data) }),
   login: async (data: LoginRequest): Promise<LoginResponse> => {
     const result = await request<LoginResponse>('/auth/login', { method: 'POST', body: json(data) });
-    retainCsrf(result.csrf_token);
     return result;
   },
   logout: async () => {
-    const result = await request<{logged_out: boolean}>('/auth/logout', { method: 'POST' }, true);
+    const result = await request<{logged_out: boolean}>('/auth/logout', { method: 'POST' }, Boolean(csrfToken));
     if (result.logged_out !== true) throw new ApiError('Abmeldung vom Backend nicht best\u00e4tigt.', 0, 'INVALID_ENVELOPE');
-    clearCsrf();
     return result;
   },
   me: async (): Promise<AuthMeResponse> => {
     const result = await request<AuthMeResponse>('/auth/me');
-    retainCsrf(result.csrf_token);
     return result;
   },
 };

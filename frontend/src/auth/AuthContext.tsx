@@ -1,8 +1,8 @@
-import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
-import { api, ApiError, clearCsrf } from '../api/client';
+import { createContext, useContext, useEffect, useMemo, useRef, useState, useSyncExternalStore, type ReactNode } from 'react';
+import { api, setCsrfToken } from '../api/client';
 import type { AuthUser, AuthEmployee } from '../api/types';
+import { SessionController, type AuthStatus } from './session';
 
-type AuthStatus = 'checking' | 'guest' | 'authenticated' | 'unavailable';
 interface AuthContextValue {
   user: AuthUser | null;
   employee: AuthEmployee | null;
@@ -12,49 +12,27 @@ interface AuthContextValue {
   signOut: () => Promise<void>;
 }
 const AuthContext = createContext<AuthContextValue | null>(null);
-
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState<AuthUser | null>(null);
-  const [employee, setEmployee] = useState<AuthEmployee | null>(null);
-  const [status, setStatus] = useState<AuthStatus>('checking');
-  const refresh = useCallback(async () => {
-    setStatus('checking');
-    try {
-      const result = await api.me();
-      if (!result?.user?.id || !['hr', 'employee'].includes(result.user.role) ||
-          (result.user.role === 'employee' && !result.employee?.first_name)) {
-        throw new Error('Ung\u00fcltiges Sitzungsprofil.');
-      }
-      setUser(result.user);
-      setEmployee(result.employee);
-      setStatus('authenticated');
-      return result.user;
-    } catch (error) {
-      setUser(null); setEmployee(null); clearCsrf();
-      if (error instanceof ApiError && error.status === 401) {
-        setStatus('guest');
-        return null;
-      }
-      setStatus('unavailable');
-      throw error;
+  const channel = useRef<BroadcastChannel | null>(null);
+  const [controller] = useState(() => new SessionController(api, setCsrfToken, () => channel.current?.postMessage('session-changed')));
+  const snapshot = useSyncExternalStore(controller.subscribe, controller.getSnapshot);
+  useEffect(() => {
+    const refresh = () => { if (!controller.isMutating) void controller.refresh().catch(() => undefined); };
+    const visible = () => { if (document.visibilityState === 'visible') refresh(); };
+    if (typeof BroadcastChannel !== 'undefined') {
+      channel.current = new BroadcastChannel('wbs-onboarding-auth');
+      channel.current.onmessage = event => { if (event.data === 'session-changed') void controller.refresh().catch(() => undefined); };
     }
-  }, []);
-  useEffect(() => { void refresh().catch(() => undefined); }, [refresh]);
-
-  const signIn = useCallback(async (username: string, password: string) => {
-    const login = await api.login({ username, password });
-    if (!login.user?.id) throw new Error('Anmeldung konnte nicht best\u00e4tigt werden.');
-    const verified = await refresh();
-    if (!verified) throw new Error('Anmeldung konnte nicht best\u00e4tigt werden.');
-    return verified;
-  }, [refresh]);
-
-  const signOut = useCallback(async () => {
-    await api.logout(); // Do not claim success until the server confirms logout.
-    setUser(null); setEmployee(null);
-    setStatus('guest');
-  }, []);
-  const value = useMemo(() => ({ user, employee, status, refresh, signIn, signOut }), [user, employee, status, refresh, signIn, signOut]);
+    refresh();
+    window.addEventListener('focus', refresh);
+    document.addEventListener('visibilitychange', visible);
+    return () => {
+      window.removeEventListener('focus', refresh);
+      document.removeEventListener('visibilitychange', visible);
+      channel.current?.close(); channel.current = null;
+    };
+  }, [controller]);
+  const value = useMemo(() => ({ ...snapshot, refresh: controller.refresh, signIn: controller.signIn, signOut: controller.signOut }), [snapshot, controller]);
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
 export function useAuth() {

@@ -9,7 +9,7 @@
     "start": "node dist/server.js",
     "migrate": "tsx src/migrate.ts",
     "provision-hr": "tsx src/provision-hr.ts",
-    "test": "tsx --test test/*.test.ts",
+    "test": "tsx --test --test-concurrency=1 test/*.test.ts",
     "format": "prettier --write src test package.json tsconfig.json compose.yaml",
     "format:check": "prettier --check src test package.json tsconfig.json compose.yaml"
   },

@@ -65,7 +65,7 @@ export function ActivatePage() {
       if (!result?.id || result.role !== 'employee' || result.username !== normalizedUsername || !result.employee_id) throw new Error('Backend hat die Aktivierung nicht bestätigt.');
       token.current = ''; initialToken = '';
       setPassword(''); setConfirmation('');
-      navigate('/login?activated=1', { replace: true });
+      navigate('/login?activated=1', { replace: true, state: { activatedUsername: result.username } });
     } catch (err) {
       if (invitationInvalid(err)) { setInvalid(true); setValidation(null); token.current = ''; initialToken = ''; }
       else if (err instanceof ApiError && err.fieldErrors) { setErrors(err.fieldErrors); setSubmissionError(err.message); }

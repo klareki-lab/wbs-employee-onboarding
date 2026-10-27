@@ -6,7 +6,7 @@ Base path `/api`; JSON. Success envelope `{ "data": ... }`. Error envelope `{ "e
 
 Use `fetch(url, {credentials: 'include', ...})`. The browser sets `Origin` to the exact configured `APP_ORIGIN`. All browser POST requests (including login and activation) require this Origin. Command-line requests must supply the same header. CORS permits only that origin with credentials. Prefer serving frontend and `/api` under the same origin in production. If cross-origin in production, keep both hosts on the same site for SameSite=Lax cookies.
 
-Login sets an opaque `session` cookie: HttpOnly, SameSite=Lax, path `/`, Secure in production. Only the SHA-256 session hash is stored. For authenticated POST requests, include `X-CSRF-Token` returned by login or `/auth/me`. Keep the CSRF value in memory; do not store authentication secrets in localStorage. Login rotates the current session. Activation creates an account but does not log the employee in.
+Login sets an opaque `wbs_onboarding_session` cookie (`__Host-wbs_onboarding_session` in production): HttpOnly, SameSite=Lax, path `/`, Secure in production. Only the SHA-256 session hash is stored. For authenticated POST requests, include `X-CSRF-Token` returned by login or `/auth/me`. Keep the CSRF value in memory; do not store authentication secrets in localStorage. Login rotates the current profile's session. Activation creates an account but does not log the employee in; its exact returned username is carried to the explicit login page. HR and employee sessions should use separate browser profiles when kept active simultaneously. Generic cookies named `session` are ignored. After the cookie namespace change, perform one fresh login. See [authentication.md](authentication.md).
 
 ## Routes
 
@@ -21,7 +21,7 @@ Login sets an opaque `session` cookie: HttpOnly, SameSite=Lax, path `/`, Secure 
 | `GET /invitations/validate?token=...` | Public bearer token in query | 43-character base64url token | 200 `{first_name,last_name,expires_at}` |
 | `POST /invitations/activate` | Public + allowed Origin | `{token,username,password}` | 201 `{id,username,employee_id,role:"employee"}` |
 | `POST /auth/login` | Public + allowed Origin | `{username,password}` | 200 `{user,csrf_token}` plus session cookie |
-| `POST /auth/logout` | Session + CSRF | No body | 200 `{logged_out:true}`; clears session and cookie |
+| `POST /auth/logout` | Session + CSRF | No body | 200 `{logged_out:true}`; clears this app's session/cookie; already expired/missing sessions also succeed (Origin still required, CSRF required for valid sessions) |
 | `GET /auth/me` | Session | None | 200 `{user,employee,csrf_token}` |
 | `GET /employee/dashboard` | Employee session | None | 200 `{areas:[{id,title}],placeholder:true}`; four requested navigation placeholders |
 | `GET /internal/departments` | Separate read-only bearer secret | None | 200 array `{id,name,team_lead,necessary_accounts,is_demo}` |

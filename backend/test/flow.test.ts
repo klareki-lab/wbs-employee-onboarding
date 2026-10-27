@@ -84,7 +84,7 @@ test("real PostgreSQL + SMTP onboarding, concurrency and authorization", async (
     assert.equal(login.status, 200);
     cookie = login.cookie;
     csrf = login.data.data.csrf_token;
-    assert.match(login.cookie, /^session=/);
+    assert.match(login.cookie, /^wbs_onboarding_session=/);
     assert.equal(
       (await call("/api/onboarding", "POST", {}, { "X-CSRF-Token": "" }))
         .status,
