@@ -76,6 +76,7 @@ async function request<T>(path: string, options: RequestInit = {}, authenticated
 const json = (data: unknown): string => JSON.stringify(data);
 
 export const api = {
+  listDepartments: () => request<Array<{name: string}>>('/hr/departments'),
   createOnboarding: (data: NewEmployeeRequest, key: string) => request<OnboardingCreated>('/onboarding', {
     method: 'POST', body: json(data), headers: { 'Idempotency-Key': key },
   }, true),

@@ -1,4 +1,4 @@
-import { useRef, useState, type FormEvent } from 'react';
+import { useEffect, useRef, useState, type FormEvent } from 'react';
 import { ArrowLeft, ArrowRight, BadgeCheck, CalendarDays, UserPlus } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { api, apiMessage, ApiError } from '../api/client';
@@ -7,12 +7,17 @@ import { Field, InlineAlert, PageHeader } from '../components/UI';
 import { validateEmployee, type FormErrors } from '../lib/validation';
 
 const initial: NewEmployeeRequest = { first_name: '', last_name: '', personal_email: '', department: '', role: '', start_date: '' };
-const departments = ['IT', 'Marketing', 'Sales'];
 export function HrNewPage() {
+  const [departments, setDepartments] = useState<string[]>([]);
   const [form, setForm] = useState(initial);
   const [errors, setErrors] = useState<FormErrors>({});
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
+  useEffect(() => {
+    let current = true;
+    api.listDepartments().then(rows => { if (current) setDepartments(rows.map(r => r.name)); }).catch(err => { if (current) setError(apiMessage(err)); });
+    return () => { current = false; };
+  }, []);
   const submitting = useRef(false);
   const key = useRef(crypto.randomUUID()); // UUID is an idempotency key, NEVER an invitation token.
   const navigate = useNavigate();

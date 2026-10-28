@@ -11,3 +11,7 @@ coverage/
 .local-install/
 __pycache__/
 *.pyc
+
+ZUGAENGE.txt
+*PRIVAT*
+*.dump

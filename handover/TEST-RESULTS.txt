@@ -1,0 +1,65 @@
+migrations
+Applied 003_admin_notifications.sql
+
+
+backend
+
+> wbs-onboarding-backend@1.0.0 test
+> tsx --test --test-concurrency=1 test/*.test.ts
+
+✔ admin outbox: authenticated registration, replay deduplication, concurrent delivery, content and uncertain-send safety (2036.878294ms)
+✔ isolated HR/employee cookie jars, activation login, logout and password rotation (3077.660172ms)
+✔ worker automatically processes a second employee after the first completes, with retries and stable job IDs (7123.581922ms)
+✔ real PostgreSQL + SMTP onboarding, concurrency and authorization (2371.851514ms)
+ℹ tests 4
+ℹ suites 0
+ℹ pass 4
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 15609.606396
+
+
+frontend
+
+> wbs-employee-onboarding-portal@1.0.0 test
+> node --experimental-strip-types --test tests/*.test.mjs
+
+✔ role homes, protected areas and login return targets stay separated (1.810014ms)
+✔ late HR initialization cannot overwrite a confirmed employee identity or CSRF (0.870055ms)
+✔ late guest 401 cannot clear a newly accepted employee session (0.361523ms)
+✔ login rejects a restored HR profile when the employee login response named another account (1.11657ms)
+✔ activation-to-login can explicitly switch an existing HR browser profile to employee (12.455183ms)
+✔ failed employee login never claims an employee identity or redirects an existing HR session (2.660367ms)
+✔ logout clears the accepted identity and prevents a late refresh from restoring HR (0.594337ms)
+✔ failed logout does not falsely claim success (0.489231ms)
+✔ session refresh after another tab changes cookie removes the old identity while checking (0.874255ms)
+✔ employee profile cannot be bound to another employee id (1.516895ms)
+✔ invalid login credentials are not described as an expired session (0.444328ms)
+✔ all backend employee states have German labels (1.261179ms)
+✔ all backend processing states have German labels (0.95736ms)
+✔ all invitation and delivery states have labels (0.211013ms)
+✔ approval only possible after completed onboarding on pending employee (0.326021ms)
+✔ invitation sending requires approved employee (0.364623ms)
+✔ approved and active employees have HR approval (0.282918ms)
+✔ processing polls automatically and terminal phases remain explicit and gated (0.556435ms)
+✔ accepts a valid onboarding form (2.653167ms)
+✔ reports all six missing required fields (0.332521ms)
+✔ rejects invalid email (0.386824ms)
+✔ rejects impossible leap days (0.200513ms)
+✔ rejects invalid calendar dates (0.383624ms)
+✔ validates usernames without whitespace (0.279317ms)
+✔ rejects too-short activation password (0.222314ms)
+✔ rejects mismatching passwords (0.186412ms)
+✔ accepts matching long activation credentials (1.11997ms)
+✔ backend username policy: lowercase 3 to 64 characters and valid first character (0.62844ms)
+✔ password longer than 128 rejected (0.31472ms)
+ℹ tests 29
+ℹ suites 0
+ℹ pass 29
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 242.075808

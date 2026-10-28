@@ -172,7 +172,9 @@ def main():
         result = json.loads(raw)
         if isinstance(result, list):
             result = result[0]
-        if result.get('departments_count') != 3 or result.get('callback_http_status') != 400 or result.get('callback_error_code') != 'VALIDATION_ERROR':
+        departments_code, departments_raw = request(api + '/api/internal/departments', bearer=values['DEPARTMENTS_API_SECRET'])
+        expected_departments = len(json.loads(departments_raw).get('data', [])) if departments_code == 200 else 0
+        if not expected_departments or result.get('departments_count') != expected_departments or result.get('callback_http_status') != 400 or result.get('callback_error_code') != 'VALIDATION_ERROR':
             raise SystemExit('Department lookup/callback authentication check failed.')
         if values['SMTP_MODE'] == 'external':
             dc('exec', '-T', 'api', 'node', 'dist/verify-smtp.js')

@@ -33,6 +33,7 @@ export interface EmployeeInvitation {
   status: InvitationStatus;
 }
 export interface EmployeeDetails extends Employee {
+  admin_notification?: {recipient: string; status: 'queued'|'sending'|'captured'|'sent'|'unknown'; sent_at: string|null; error_code: string|null}|null;
   updated_at: string;
   approved_at: string | null;
   approved_by: string | null;

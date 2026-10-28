@@ -18,6 +18,7 @@ const schema = z.object({
   SMTP_USER: z.string().optional(),
   SMTP_PASSWORD: z.string().optional(),
   SMTP_FROM: z.email().default("onboarding@example.invalid"),
+  SYSTEM_ADMIN_EMAIL: z.email().optional(),
   SESSION_HOURS: z.coerce.number().int().min(1).max(168).default(8),
   INVITATION_HOURS: z.coerce.number().int().min(1).max(168).default(24),
   TRUST_PROXY_HOPS: z.coerce.number().int().min(0).default(0),

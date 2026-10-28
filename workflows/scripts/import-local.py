@@ -19,10 +19,11 @@ def run(args, data=None):
         # Do not echo n8n exception bodies: imported credential JSON can appear in them.
         raise SystemExit('Local n8n import command failed; no credential contents logged. Check isolated container health and CLI version.')
 
-for file,kind in [('credentials.json','credentials'),('onboarding.json','workflow'),('connectivity.json','workflow')]:
+for file,kind in [('credentials.json','credentials'),('onboarding.json','workflow'),('chat.json','workflow'),('connectivity.json','workflow')]:
     data=(LOCAL/file).read_bytes()
     run(['sh','-c',f'umask 077; cat > /tmp/wbs-import.json; n8n import:{kind} --input=/tmp/wbs-import.json; result=$?; rm -f /tmp/wbs-import.json; exit "$result"'],data)
     print(f'Imported local {kind}: {file}')
 (LOCAL/'credentials.json').unlink()
 run(['n8n','publish:workflow','--id=wbsOnboardingConnectivity'])
+run(['n8n','publish:workflow','--id=wbsOnboardingChatLocal'])
 print('Connectivity workflow published locally. Employee workflow remains unpublished until OpenAI readiness checks pass. Restart the local n8n container to load it.')

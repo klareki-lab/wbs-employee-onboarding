@@ -7,6 +7,7 @@ import { randomToken, digest } from "../auth/security.js";
 import { config } from "../config/index.js";
 import { n8nConfigured } from "../integrations/n8n.js";
 import { mailer, sendInvitation } from "../integrations/email.js";
+import { queueAdminNotification } from "../integrations/admin-notifications.js";
 export const hr = Router();
 hr.use(authenticate, role("hr"), csrf);
 const uuid = z.uuid();
@@ -71,6 +72,7 @@ hr.post("/onboarding", async (req, res) => {
       };
     }
     const employee = inserted.rows[0];
+    await queueAdminNotification(db, employee.id);
     const job = (
       await db.query(
         "INSERT INTO onboarding_jobs(employee_id,processing_status) VALUES($1,$2) RETURNING id,processing_status",
@@ -85,6 +87,9 @@ hr.post("/onboarding", async (req, res) => {
     };
   });
   res.status(result.replayed ? 200 : 201).json({ data: result });
+});
+hr.get("/hr/departments", async (_req, res) => {
+  res.json({data:(await pool.query("SELECT name FROM departments ORDER BY name")).rows});
 });
 hr.get("/hr/employees", async (req, res) => {
   const { limit, offset } = z
@@ -103,6 +108,7 @@ hr.get("/hr/employees/:id", async (req, res) => {
   const id = uuid.parse(req.params.id);
   const result = await pool.query(
     `SELECT e.*, e.start_date::text AS start_date, COALESCE(j.orchestration_result->>'team_lead',d.team_lead) AS team_lead,COALESCE(j.orchestration_result->'necessary_accounts',d.necessary_accounts) AS necessary_accounts,d.is_demo AS department_is_demo,j.id AS job_id,j.processing_status,j.orchestration_result,j.error_code,
+ (SELECT jsonb_build_object('recipient',a.recipient,'status',a.status,'sent_at',a.sent_at,'error_code',a.error_code) FROM admin_notifications a WHERE a.employee_id=e.id) AS admin_notification,
  (SELECT jsonb_build_object('id',i.id,'expires_at',i.expires_at,'used_at',i.used_at,'revoked_at',i.revoked_at,'delivery_status',i.delivery_status,'status',CASE WHEN i.used_at IS NOT NULL THEN 'used' WHEN i.revoked_at IS NOT NULL THEN 'revoked' WHEN i.expires_at<=now() THEN 'expired' ELSE 'pending' END) FROM invitations i WHERE i.employee_id=e.id ORDER BY i.created_at DESC LIMIT 1) AS invitation
  FROM employees e JOIN departments d ON d.name=e.department JOIN onboarding_jobs j ON j.employee_id=e.id WHERE e.id=$1`,
     [id],

@@ -24,14 +24,14 @@ BOOTSTRAP.chmod(0o755)
 def read_env(path):
     values = {}
     if path.exists():
-        for line in path.read_text().splitlines():
+        for line in path.read_text(encoding='utf-8').splitlines():
             if '=' in line and not line.lstrip().startswith('#'):
                 key, value = line.split('=', 1)
                 values[key.strip()] = value.strip().strip('\"\'')
     return values
 
 def private_write(path, value):
-    path.write_text(value)
+    path.write_text(value, encoding='utf-8')
     path.chmod(0o600)
 
 path = args.env_file or ROOT / 'backend/.env'
@@ -58,12 +58,16 @@ for id_, name, secret in [
     credentials.append({'id':id_,'name':name,'type':'httpHeaderAuth','data':{'name':'Authorization','value':'Bearer '+secret}})
 key = env.get('OPENAI_API_KEY') or os.environ.get('OPENAI_API_KEY')
 if key:
-    credentials.append({'id':'wbsOnboardingOpenAI','name':'Onboarding OpenAI (local only)','type':'openAiApi','data':{'apiKey':key}})
+    data = {'apiKey':key}
+    if env.get('OPENAI_CREDENTIAL_DATA_FILE'):
+        # Preserve authorized custom provider settings; this file stays in ignored local state.
+        data = json.loads((path.parent / env['OPENAI_CREDENTIAL_DATA_FILE']).read_text(encoding='utf-8'))
+    credentials.append({'id':'wbsOnboardingOpenAI','name':'Onboarding OpenAI (local only)','type':'openAiApi','data':data})
 private_write(BOOTSTRAP/'credentials.json',json.dumps(credentials))
 
-workflow = json.loads((ROOT/'workflows/onboarding-webhook.json').read_text())
+workflow = json.loads((ROOT/'workflows/onboarding-webhook.json').read_text(encoding='utf-8'))
 workflow['id']='wbsOnboardingLocal'
-workflow['name']='WBS Onboarding — isolated local'
+workflow['name']='WBS Onboarding - Mitarbeiteraufnahme'
 workflow['active']=False
 ids={'REPLACE_OPENAI_CREDENTIAL_ID':'wbsOnboardingOpenAI','REPLACE_DEPARTMENTS_CREDENTIAL_ID':'wbsOnboardingDepartments','REPLACE_INTERNAL_API_CREDENTIAL_ID':'wbsOnboardingCallback','REPLACE_WEBHOOK_CREDENTIAL_ID':'wbsOnboardingWebhook'}
 for n in workflow['nodes']:
@@ -88,6 +92,18 @@ if args.retry_job_id:
         del jobs[args.retry_job_id]
     workflow['staticData']=static
 private_write(BOOTSTRAP/'onboarding.json',json.dumps(workflow,ensure_ascii=False))
+
+chat = json.loads((ROOT/'workflows/onboarding-chat-trigger.json').read_text(encoding='utf-8'))
+chat.update(id='wbsOnboardingChatLocal', name='WBS Onboarding - Chat-Assistent', active=False)
+chat['settings'].update(saveDataSuccessExecution='none', saveDataErrorExecution='none', saveManualExecutions=False)
+for n in chat['nodes']:
+    for c in n.get('credentials',{}).values():
+        c['id'] = ids[c['id']]
+    if 'url' in n['parameters']:
+        n['parameters']['url'] = n['parameters']['url'].replace('={{ $env.BACKEND_BASE_URL }}','http://api:3001')
+    if n['type'].endswith('.lmChatOpenAi'):
+        n['parameters']['model'] = {'__rl':True,'mode':'id','value':env.get('OPENAI_MODEL','gpt-4o-mini')}
+private_write(BOOTSTRAP/'chat.json',json.dumps(chat,ensure_ascii=False))
 
 # A real n8n connectivity workflow: authenticated reads and a rejected (non-mutating) callback.
 probe={'id':'wbsOnboardingConnectivity','name':'WBS Onboarding — connectivity only','active':False,'nodes':[
