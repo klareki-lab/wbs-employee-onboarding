@@ -1,6 +1,6 @@
-# Release-candidate verification — 2026-10-27
+# v1.0.0 verification evidence — tests performed 2026-10-27
 
-Branch: `integration/mvp-v1`. Draft PR: [#4](https://github.com/klarekipro/wbs-employee-onboarding/pull/4). Local installation only; no merge, tag, VPS deployment or production infrastructure change.
+**Historical scope:** Testing was performed on `integration/mvp-v1` before release. Subsequently [PR #4](https://github.com/klarekipro/wbs-employee-onboarding/pull/4) merged into `main` on 2026-10-27 and annotated tag [`v1.0.0`](https://github.com/klarekipro/wbs-employee-onboarding/tree/v1.0.0) was created. These later GitHub actions do **not** change the test evidence below. Installation and testing were local only: no VPS or production infrastructure deployment.
 
 ## Independent installation
 

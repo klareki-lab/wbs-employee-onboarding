@@ -1,6 +1,8 @@
-# Yuri's independent local setup
+# Independent local setup — for Yuri and WBS colleagues
 
 You need only this public repository, your own provider credentials, Python 3.10+, Git and running Docker with Compose v2. You do not need the owner's Mac, database, Docker volumes, HR account, n8n account, API keys or Node.js installation. No VPS is used.
+
+**Release:** [`v1.0.0`](https://github.com/klarekipro/wbs-employee-onboarding/tree/v1.0.0) is the stable reference; PR #4 is merged. The commands below create a **fresh independent installation**. They do not start or repair an existing legacy developer stack launched via `backend/compose*.yaml` and Vite. Keep those setups separate. Every user creates their own HR login and local n8n Owner account; credentials from another machine or installation will not work.
 
 ## 1. Install prerequisites
 
@@ -17,7 +19,7 @@ Prepare **your own authorized OpenAI API key** with API billing, `gpt-4o-mini` a
 macOS/Linux:
 
 ```sh
-git clone --branch integration/mvp-v1 https://github.com/klarekipro/wbs-employee-onboarding.git
+git clone --branch v1.0.0 https://github.com/klarekipro/wbs-employee-onboarding.git
 cd wbs-employee-onboarding
 python3 scripts/local.py configure
 ```
@@ -113,8 +115,8 @@ On Windows substitute `py -3`. Ordinary stop/down does not delete data. The expl
 
 ## Release and verification
 
-Source: https://github.com/klarekipro/wbs-employee-onboarding/tree/integration/mvp-v1
+Release source: https://github.com/klarekipro/wbs-employee-onboarding/tree/v1.0.0
 
-Final review: https://github.com/klarekipro/wbs-employee-onboarding/pull/4 (Draft; not merged)
+Final review: https://github.com/klarekipro/wbs-employee-onboarding/pull/4 (merged into `main` on 2026-10-27)
 
 Exact tested results/platform limits: [verification.md](verification.md). The four employee areas are placeholders; local single-machine operation, provider access and a reachable invitation origin are intentional MVP limits. No VPS is planned. Version `v1.0.0` is proposed after owner approval, with no automatic merge or tag.
