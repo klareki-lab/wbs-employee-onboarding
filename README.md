@@ -2,7 +2,7 @@
 
 A local employee onboarding application: HR registers an employee, three real AI agents prepare onboarding information, HR reviews and approves it, and a personal invitation lets the employee activate an independent account and open the employee portal.
 
-**Local installation only. No VPS deployment is needed.** This branch is the release candidate; Draft PR [#4](https://github.com/klarekipro/wbs-employee-onboarding/pull/4) is not merged. A `v1.0.0` tag is proposed only after owner approval.
+**Released: [`v1.0.0`](https://github.com/klarekipro/wbs-employee-onboarding/tree/v1.0.0).** Integration [PR #4](https://github.com/klarekipro/wbs-employee-onboarding/pull/4) was merged into `main` on 2026-10-27. This is a **local-only** application; there is no VPS deployment. For a stable reference use the `v1.0.0` tag. Future documentation or feature changes in `main` do not alter that tag.
 
 ## Architecture
 
@@ -28,12 +28,18 @@ PostgreSQL uses the `employee_onboarding` schema. The launcher creates its own C
 - Your own authorized Resend API key with sending permission and a sender on a domain already verified for your account. Do not use another project's sender/key. This installer makes no DNS/MX changes.
 - Free localhost ports 5173, 3009, 5681 and 8025. Alternatives are supported at configuration time.
 
+## Which installation should colleagues use?
+
+For **new independent installations**, use the portable `scripts/local.py` launcher below. It creates a separate Docker Compose project, database, n8n instance, credentials and HR account. **Do not reuse someone else's localhost URL, HR login, secrets, or database.** The `backend/compose*.yaml` plus `npm run dev` setup is a **legacy developer setup**, not the portable installation. Never combine commands or credentials from these two setups.
+
+If you already run the legacy developer stack, do **not** run `local.py configure/up` expecting to control its containers. The launcher defaults to a separate project (`wbs-onboarding-local`) and will not find the developer project's configuration. `localhost` URLs refer to each person's own machine, not a shared hosted demonstration.
+
 ## Quick Start
 
 macOS / Linux:
 
 ```sh
-git clone --branch integration/mvp-v1 https://github.com/klarekipro/wbs-employee-onboarding.git
+git clone --branch v1.0.0 https://github.com/klarekipro/wbs-employee-onboarding.git
 cd wbs-employee-onboarding
 python3 scripts/local.py configure
 python3 scripts/local.py up
@@ -43,7 +49,7 @@ python3 scripts/local.py hr
 Windows PowerShell:
 
 ```powershell
-git clone --branch integration/mvp-v1 https://github.com/klarekipro/wbs-employee-onboarding.git
+git clone --branch v1.0.0 https://github.com/klarekipro/wbs-employee-onboarding.git
 cd wbs-employee-onboarding
 py -3 scripts/local.py configure
 py -3 scripts/local.py up
