@@ -1,0 +1,92 @@
+{
+  "name": "CRM — Verarbeitungsstatus synchronisieren",
+  "active": false,
+  "nodes": [
+    {
+      "id": "bf7cc4ba-b202-42a9-947e-23dda038b59f",
+      "name": "Alle zwei Minuten",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        0,
+        0
+      ],
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "minutes",
+              "minutesInterval": 2
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "19a0029d-65f3-4b20-84ef-2a683f22981d",
+      "name": "Manuell prüfen",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        0,
+        180
+      ],
+      "parameters": {}
+    },
+    {
+      "id": "5e668cd7-a636-4a51-b3fd-82da5e21c901",
+      "name": "CRM Erweiterung ausführen",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        280,
+        0
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "http://crm:3080/internal/sync",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "options": {
+          "timeout": 55000
+        }
+      },
+      "credentials": {
+        "httpHeaderAuth": {
+          "name": "CRM Interner Dienst"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Alle zwei Minuten": {
+      "main": [
+        [
+          {
+            "node": "CRM Erweiterung ausführen",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Manuell prüfen": {
+      "main": [
+        [
+          {
+            "node": "CRM Erweiterung ausführen",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "saveDataErrorExecution": "none",
+    "saveDataSuccessExecution": "none",
+    "saveManualExecutions": false
+  },
+  "id": "trainTodayCrm06"
+}

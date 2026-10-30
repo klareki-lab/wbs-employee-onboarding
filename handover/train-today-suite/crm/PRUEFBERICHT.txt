@@ -1,0 +1,76 @@
+CRM – PRÜFBERICHT vom 24.10.2026
+
+Getestete Umgebung:
+Windows-Host, isoliertes Docker-Compose-Projekt train-today-crm.
+PostgreSQL 16.15, Node.js 22.23.4, separate n8n-Instanz auf localhost:5682.
+
+ERGEBNIS
+
+43 automatisierte Integrationstests bestanden, 0 fehlgeschlagen.
+Die Einzelergebnisse stehen in test-results.json.
+
+Geprüft wurden insbesondere:
+- Persönliche Anmeldung, Rollen, Projektzugriff und serverseitige Sperren.
+- Neue Beraterkonten, Passwortänderung mit Sitzungsentwertung, Kontosperre.
+- Ein Gespräch mit mehreren Projekten, ohne Verdopplung gemeinsamer Budgetwerte.
+- Gleichzeitige Wiederholungen, stabile Anfrage-ID, Konflikt bei verändertem Inhalt.
+- Unveränderliche Originalnotizen und Schutz vor überschriebenen Paralleländerungen.
+- Aufgabenabschluss, getrennte Kontaktaktivitäten und bestätigte Übergaben.
+- Bestätigte Aufträge, eindeutige Auftragsnummern, Teilzahlungen und Erstattungen.
+- Berechnung, Rollenanteile, manuelle Prämienfreigabe, negative Korrektur und Historie.
+- Projektzusammenführung und kontrollierte Rücknahme.
+- Lesende Agent-Rolle: Schreiben bleibt auch nach Deaktivierung des PostgreSQL-
+  Read-only-Standardwerts verboten. Kein Zugriff auf Passworttabellen oder Signaturschlüssel.
+- Ein gefälschter Benutzerkontext über SET ermöglicht keine Leitungsrechte.
+- KI-Vorschläge werden nicht automatisch gespeichert.
+
+ECHTE N8N-/POSTGRESQL-KETTE
+
+Die vier kopierten Kernworkflows und fünf Erweiterungen wurden in einer EIGENEN
+n8n-Instanz importiert und aktiviert. 51 fiktive Vorgänge (40 Ausgangsgespräche
+plus technische QA-Fälle) durchliefen Capture, Verarbeitung und simulierte
+E-Mail-Annahme erfolgreich. Der Datenbankstatus lautete jeweils completed/delivered.
+
+Dabei wurden Tavily/Requesty/Resend durch lokale HTTP-Testdienste ersetzt.
+Die Anbieter-URLs, Zugangsdaten und der Testtakt wurden ausschließlich für diese
+isolierte Installation überlagert. Kein externer API-Aufruf, keine echte E-Mail.
+Die fachlichen JavaScript-Kernfunktionen und SQL-Aufrufe wurden nicht verändert.
+Zusätzliche QA-Projektakten wurden anschließend gezielt aus dem CRM entfernt;
+die 40 Ausgangsgespräche bleiben erhalten. Historische technische Kern-Testläufe
+können weiter in trade_fair vorhanden sein und sind keine echten Geschäftsvorgänge.
+
+BROWSERPRÜFUNG
+
+- Anmeldung und Startseite im tatsächlichen Browser geprüft.
+- Gespräch mit zwei Projekten eingegeben, gespeichert und in der Projektakte geöffnet.
+- Originalnotiz nach Speicherung vollständig sichtbar.
+- CRM-Dienst angehalten, Gespräch offline gespeichert: Warteschlange zeigte 1 Vorgang.
+- Dienst wieder gestartet, Warteschlange übertragen: 0 offene Übertragungen;
+  PostgreSQL enthielt genau ein Gespräch dieses Offline-Tests.
+- Kompakte Ansicht und Desktop-Ansicht geprüft, Geschäftsführungsauswertung geöffnet.
+- Die temporäre Prüfperson wird nach Abschluss gesperrt und abgemeldet.
+
+ORIGINALSCHUTZ
+
+Alle vier Original-Workflowdateien sind per SHA-256 unverändert.
+Die vier verteilbaren CRM-Kopien besitzen dieselben Verbindungen, Node-Typen und
+fachlichen Parameter wie die Originale; lediglich die Webhook-Pfade sind getrennt.
+16 enthaltene Code-Nodes und das JavaScript der Einzel-HTML sind syntaktisch geprüft.
+Prüfskript: node tests/preservation.mjs
+
+NICHT ALS LIVE-ERFOLG GEPRÜFT
+
+Echte Neon-Migration, echte Internetrecherche, reale Modellqualität, Bild-OCR,
+Mikrofon-/Diktatfreigabe auf Mobilgeräten, realer E-Mail-Empfang, Mailbox- und
+Kalendersynchronisierung sowie tatsächliche Gehaltsauszahlungen.
+Hierfür sind passende Zugangsdaten, Zielumgebung und fachliche Abnahme erforderlich.
+Die Mikrofon- oder Kameraberechtigung wurde für den Test nicht angefordert.
+
+BEKANNTE ABGRENZUNGEN
+
+Die 40 Projektakten enthalten absichtlich noch nicht zusammengeführte Doppelprojekte.
+14 unbenutzte Firmenplatzhalter aus einer frühen Importprüfung wurden vorsichtshalber
+nicht gelöscht. Die Gesprächsprojekte selbst sind den richtigen realen Firmen zugeordnet.
+Die automatische Sicherheitsprüfung hatte eine weiter gefasste Bereinigung abgelehnt;
+anschließend wurde ausschließlich auf eindeutig erzeugte CRM-QA-Datensätze begrenzt.
+Die vollständige Funktionsübersicht und die Schritte für Neon stehen in ANLEITUNG.txt.

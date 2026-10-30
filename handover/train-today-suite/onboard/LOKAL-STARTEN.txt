@@ -1,0 +1,101 @@
+ONBOARDING - LOKALE EINRICHTUNG
+
+Anwendung:       http://localhost:5173/login
+n8n Onboarding:  http://localhost:5681
+Lokale Mailbox:  http://localhost:8025
+Backend-Status:  http://localhost:3009/health
+
+ANMELDEN
+ZUGAENGE-ANZEIGEN.cmd oeffnet die privaten lokalen Zugangsdaten.
+HR-Benutzer: juri.hr
+Beispielmitarbeiter: lena.beispiel
+Die Passwoerter stehen ausschliesslich unter .local-install.
+Das n8n-Login dieser neuen Instanz ist ein eigenes Konto.
+
+BENUTZEN
+1. Als juri.hr anmelden und einen neuen Mitarbeiter erfassen.
+2. Die KI-Verarbeitung startet automatisch. Ergebnis abwarten und pruefen.
+3. Als HR freigeben, danach Einladung senden.
+4. Die E-Mail erscheint nur in der lokalen Mailbox, nicht im echten Postfach.
+5. Den Aktivierungslink fuer einen neuen Mitarbeiter am besten in einem
+   privaten Browserfenster oeffnen. Dort eigenes Mitarbeiterkonto anlegen.
+6. Der Mitarbeiter kann sich anschliessend im Portal anmelden.
+
+Die Beispieldaten von Lena Beispiel wurden durch den gesamten Ablauf getestet.
+Ihr Konto ist bereits aktiviert. Die vier Portalbereiche Regeln, Schulungen,
+Team und Aufgaben sind im gelieferten Projekt bislang Platzhalter.
+
+WORKFLOWS
+In der neuen n8n-Instanz sind Mitarbeiteraufnahme, Chat-Assistent und ein
+technischer Verbindungstest vorhanden. Der Chat entwirft nur einen Plan;
+er legt keinen Mitarbeiter an und verschickt keine E-Mail.
+Direkter Chat-Link:
+http://localhost:5681/webhook/f43366f1-7c80-5b71-ae3f-1863f6fa8d2d/chat
+
+STARTEN / STOPPEN
+Zuerst Docker Desktop starten. Danach START-ONBOARDING.cmd doppelklicken.
+STOP-ONBOARDING.cmd stoppt ausschliesslich dieses Onboarding-Projekt.
+Die Daten bleiben dabei erhalten. Andere Docker-Projekte bleiben aktiv.
+Die Startdateien verwenden das vorhandene Python von Codex; alternativ wird
+ein installiertes Python 3 ueber den Windows-Python-Launcher verwendet.
+
+TECHNISCHE TRENNUNG
+Eigenes Docker-Projekt wbs-onboarding-local mit fuenf Diensten:
+web, api, db (PostgreSQL 17), n8n (2.41.7), mailpit.
+Eigene Daten-Volumes und eigenes Netzwerk. Die Datenbank hat keinen Host-Port.
+Die Benutzeroberflaechen sind nur an 127.0.0.1 gebunden.
+Das bisherige n8n auf Port 5678 und der Messe-Hub wurden nicht umkonfiguriert.
+Der vorhandene KI-Zugang wurde mit Zustimmung in die neue Instanz kopiert.
+Er nutzt Requesty als API-Anbieter und das Modell openai/gpt-4.1-mini.
+KI-Anfragen verwenden weiterhin diesen bestehenden Zugang und dessen Guthaben.
+
+DATEIEN / SICHERUNG
+.local-install enthaelt lokale Passwoerter, API-Zugang und technische Secrets.
+Diesen Ordner nicht weitergeben oder auf GitHub hochladen; .gitignore schliesst
+ihn aus. Die eigentlichen Daten liegen in den Docker-Volumes. Nur diesen
+Projektordner zu kopieren ist daher keine vollstaendige Datensicherung.
+
+PRUEFUNGEN
+32 automatisierte Tests erfolgreich: 3 Backend-Integrationsszenarien und
+29 Frontend-Tests. Backend-Tests liefen in einer separaten onboarding_test-DB.
+Zusaetzlich echter End-to-End-Test mit KI, n8n, Freigabe, Mailpit-Einladung,
+Aktivierung, Mitarbeiter-Login und abgewiesenem Zugriff auf HR.
+Auch der Chat wurde mit einer echten KI-Anfrage erfolgreich getestet:
+korrekte IT-Abteilungsdaten, benoetigte Konten und Begruessungsentwurf.
+Protokolle: .local-install/wbs-onboarding-local/automated-tests.txt
+           .local-install/wbs-onboarding-local/e2e-result.txt
+           .local-install/wbs-onboarding-local/chat-test.txt
+Echter externer E-Mail-Versand ist absichtlich nicht eingerichtet.
+
+ERWEITERUNG: TEAM UND SYSTEMADMIN-BENACHRICHTIGUNG
+14 zusaetzliche Mitarbeiter mit Eintritt am 02.11.2026:
+Mara Winter (Leitung), Anna Berger, Ben Richter, Cem Yilmaz, Dora Neumann,
+Eva Sommer (Vertrieb), Laura Koenig (Buchhaltung), Sophie Keller (Personal),
+Jonas Weber (IT), Nina Fischer (Marketing), Leon Wagner (Kundenservice),
+Paula Schneider (Operations), Tim Hoffmann (Einkauf), Mia Becker (Assistenz).
+Anna Berger verwendet anna.berger, weil anna bereits Anna Mueller gehoert.
+Die Zugangsdaten stehen in derselben privaten ZUGAENGE.txt. Die vorgegebenen
+Passwoerter wurden beibehalten; zusaetzliche Passwoerter wurden neu erzeugt.
+Es wurden keine Einladungs-E-Mails an diese 14 Mitarbeiter angefordert.
+Alle Team-Konten oeffnen das Mitarbeiterportal. Berufsbezeichnung/Leitung
+verleiht keine zusaetzlichen HR-Administrationsrechte; HR bleibt juri.hr.
+
+Bei jeder neuen Erfassung erstellt das Backend jetzt eine Admin-Nachricht.
+Empfaenger: juripoljanzewai@gmail.com (SYSTEM_ADMIN_EMAIL in install.env).
+Inhalt: Name, Eintrittsdatum, Position, Abteilung, Teamleitung, Kontaktadresse,
+benoetigte Systeme und Link zur HR-Karte. Keine Passwoerter in dieser Mail.
+Die Admin-Nachrichten bleiben auf Wunsch ausschliesslich in Mailpit.
+ERP-/CRM-Konten werden dadurch noch nicht angelegt: Das erledigt der Admin.
+Die Benachrichtigung ist unabhaengig von der spaeteren Mitarbeiter-Einladung.
+
+Der neue Versandstatus wird in der HR-Karte angezeigt. Bei 'Versand unklar'
+zuerst Mailbox und SMTP-Zustand pruefen; es erfolgt keine automatische
+Wiederholung, die versehentlich doppelte Nachrichten erzeugen koennte.
+Die Warteschlange ist dauerhaft in admin_notifications gespeichert; Migration
+003_admin_notifications.sql wird beim Start automatisch angewendet.
+Bestehende Mitarbeiter erhalten keine rueckwirkende Admin-Mail.
+Das Formular laedt alle Abteilungen aus der Datenbank ueber /api/hr/departments.
+
+Erweiterte Tests: 4 Backend-Integrationsszenarien plus 29 Frontend-Tests
+erfolgreich, einschliesslich Admin-Mail-Inhalt, Duplikatschutz, parallelen
+Versandversuchen und Behandlung eines SMTP-Fehlers.
