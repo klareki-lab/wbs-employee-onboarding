@@ -1,0 +1,91 @@
+name: Phase 2 Onboarding CI (synthetic only)
+on:
+  push:
+    branches: [feat/onboarding-checklists-phase2]
+  pull_request:
+    branches: [main]
+    paths:
+      - 'backend/**'
+      - 'frontend/**'
+      - 'database/**'
+      - 'workflows/**'
+      - '.github/workflows/phase2-ci.yml'
+permissions:
+  contents: read
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_DB: onboarding_phase2_test
+          POSTGRES_USER: phase2_test
+          POSTGRES_PASSWORD: local-test-only
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U phase2_test -d onboarding_phase2_test"
+          --health-interval 5s --health-timeout 5s --health-retries 12
+      mailpit:
+        image: axllent/mailpit:v1.27
+        ports:
+          - 1025:1025
+          - 8025:8025
+    env:
+      NODE_ENV: test
+      DATABASE_URL: postgresql://phase2_test:local-test-only@localhost:5432/onboarding_phase2_test
+      APP_ORIGIN: http://localhost:5173
+      INTERNAL_API_SECRET: synthetic-internal-test-key-please-do-not-reuse-0001
+      DEPARTMENTS_API_SECRET: synthetic-department-test-key-please-do-not-reuse-0002
+      N8N_ONBOARDING_WEBHOOK_SECRET: synthetic-onboarding-test-key-please-do-not-reuse-0003
+      SMTP_MODE: capture
+      SMTP_HOST: localhost
+      SMTP_PORT: '1025'
+      SMTP_SECURE: 'false'
+      SMTP_FROM: onboarding@example.invalid
+      MAILPIT_API_URL: http://localhost:8025
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: |
+            backend/package-lock.json
+            frontend/package-lock.json
+      - name: Install backend
+        run: npm ci
+        working-directory: backend
+      - name: Backend TypeScript build
+        run: npm run build
+        working-directory: backend
+      - name: Apply database migrations to disposable database
+        run: npm run migrate
+        working-directory: backend
+      - name: Backend API and database regression tests
+        run: npm test
+        working-directory: backend
+      - name: Install frontend
+        run: npm ci
+        working-directory: frontend
+      - name: Frontend TypeScript and Vite build
+        run: npm run build
+        working-directory: frontend
+      - name: Frontend unit tests
+        run: npm test
+        working-directory: frontend
+      - name: Validate importable n8n JSON structure (not a live execution)
+        run: |
+          python3 - <<'PYTEST'
+          import json
+          for name in ['onboarding-webhook','onboarding-chat-trigger']:
+              path = f'workflows/{name}.json'
+              w = json.load(open(path, encoding='utf-8'))
+              names = {n['name'] for n in w['nodes']}
+              assert any(n['type'] == 'n8n-nodes-base.stickyNote' and 'Phase 2' in n['name'] for n in w['nodes'])
+              assert 'onboarding_info' in names and 'welcome_announcement' in names
+              assert w.get('active') is False
+              print(f'{path}: JSON valid, Phase 2 notes and two subagents retained')
+          PYTEST
