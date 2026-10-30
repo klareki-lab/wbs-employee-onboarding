@@ -98,6 +98,19 @@ export const api = {
     if (result.logged_out !== true) throw new ApiError('Abmeldung vom Backend nicht best\u00e4tigt.', 0, 'INVALID_ENVELOPE');
     return result;
   },
+  // Phase 2 task APIs: same session, origin and CSRF protections as v1.
+  getHrTasks: (employeeId: string) => request<import('./types').TaskListPayload>(`/hr/employees/${encodeURIComponent(employeeId)}/tasks`),
+  getMyPlan: () => request<{ processing_status: string; personal_plan: string | null }>('/employee/plan'),
+  getMyTasks: () => request<import('./types').TaskListPayload>('/employee/tasks'),
+  updateHrTask: (id: string, status: import('./types').TaskStatus, expected_version: number) =>
+    request<import('./types').TaskMutation>(`/hr/tasks/${encodeURIComponent(id)}/status`,
+      { method: 'PATCH', body: json({ status, expected_version }) }, true),
+  updateMyTask: (id: string, status: import('./types').TaskStatus, expected_version: number) =>
+    request<import('./types').TaskMutation>(`/employee/tasks/${encodeURIComponent(id)}/status`,
+      { method: 'PATCH', body: json({ status, expected_version }) }, true),
+  approveTask: (id: string, expected_version: number) =>
+    request<import('./types').TaskMutation>(`/hr/tasks/${encodeURIComponent(id)}/approve`,
+      { method: 'POST', body: json({ expected_version }) }, true),
   me: async (): Promise<AuthMeResponse> => {
     const result = await request<AuthMeResponse>('/auth/me');
     return result;

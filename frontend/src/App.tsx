@@ -9,6 +9,7 @@ import { HrDetailPage } from './pages/HrDetail';
 import { ActivatePage } from './pages/Activate';
 import { LoginPage } from './pages/Login';
 import { DashboardPage, PlaceholderPage } from './pages/Portal';
+import { MyTasksPage } from './pages/MyTasks';
 
 function Protected({ role }: { role: 'hr' | 'employee' }) {
   const { user, status, refresh } = useAuth();
@@ -41,7 +42,7 @@ export function App() {
       <Route path="/dashboard/rules" element={<PlaceholderPage section="rules" />} />
       <Route path="/dashboard/training" element={<PlaceholderPage section="training" />} />
       <Route path="/dashboard/team" element={<PlaceholderPage section="team" />} />
-      <Route path="/dashboard/tasks" element={<PlaceholderPage section="tasks" />} />
+      <Route path="/dashboard/tasks" element={<MyTasksPage />} />
     </Route></Route>
     <Route path="*" element={<div className="global-state"><CenterState title="Seite nicht gefunden" detail="Der angeforderte Bereich existiert nicht." action={<a href="/" className="button button-primary">Zur Startseite</a>} /></div>} />
   </Routes></AuthProvider></BrowserRouter>;

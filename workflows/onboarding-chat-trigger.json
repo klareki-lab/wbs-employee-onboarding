@@ -221,6 +221,22 @@
         -900,
         280
       ]
+    },
+    {
+      "parameters": {
+        "content": "## Phase 2 — Chat Demo\n\nChat is still the v1 read-only demonstration.\nTask assignment and approvals happen ONLY in PostgreSQL / authenticated backend.\nThe real personalized plan is produced by the production webhook after deterministic task assignment.\nNever treat chat output as proof of access, HR approval, or a completed task.",
+        "height": 340,
+        "width": 500,
+        "color": 5
+      },
+      "id": "9f033e04-b6c8-54b3-819e-b22ce6aa16dd",
+      "name": "Sticky: Phase 2 boundaries (Chat)",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        640,
+        -450
+      ]
     }
   ],
   "connections": {
