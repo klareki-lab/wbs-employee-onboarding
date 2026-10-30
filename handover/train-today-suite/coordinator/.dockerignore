@@ -1,0 +1,6 @@
+.env
+.local-backup
+node_modules
+tests
+*.dump
+test-results.private.json

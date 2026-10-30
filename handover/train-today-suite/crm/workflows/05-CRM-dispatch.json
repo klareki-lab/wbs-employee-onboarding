@@ -1,0 +1,92 @@
+{
+  "name": "CRM — Übertragung an Sergiis Kern",
+  "active": false,
+  "nodes": [
+    {
+      "id": "ddd6900c-617c-4795-bb1c-22e13471804a",
+      "name": "Alle zwei Minuten",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        0,
+        0
+      ],
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "minutes",
+              "minutesInterval": 2
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "977e977e-e568-4bf9-b404-75416e0f51ab",
+      "name": "Manuell prüfen",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        0,
+        180
+      ],
+      "parameters": {}
+    },
+    {
+      "id": "11e3c2a5-8324-4ce9-b5e7-e25c1fdc3d48",
+      "name": "CRM Erweiterung ausführen",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        280,
+        0
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "http://crm:3080/internal/dispatch",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "options": {
+          "timeout": 55000
+        }
+      },
+      "credentials": {
+        "httpHeaderAuth": {
+          "name": "CRM Interner Dienst"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Alle zwei Minuten": {
+      "main": [
+        [
+          {
+            "node": "CRM Erweiterung ausführen",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Manuell prüfen": {
+      "main": [
+        [
+          {
+            "node": "CRM Erweiterung ausführen",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "saveDataErrorExecution": "none",
+    "saveDataSuccessExecution": "none",
+    "saveManualExecutions": false
+  },
+  "id": "trainTodayCrm05"
+}

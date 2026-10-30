@@ -1,0 +1,9 @@
+.env
+LOKALE-ZUGAENGE.txt
+node_modules
+*.tgz
+workflows
+sql/002-local-passwords.sql
+sql/008-local-authority.sql
+.local-n8n.json
+backups

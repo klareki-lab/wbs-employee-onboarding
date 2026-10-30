@@ -1,0 +1,14 @@
+[
+  {
+    "name": "Leadership page renders restored metrics and donut",
+    "passed": true
+  },
+  {
+    "name": "Team chat opens in restored portal",
+    "passed": true
+  },
+  {
+    "name": "CRM login and dashboard render",
+    "passed": true
+  }
+]

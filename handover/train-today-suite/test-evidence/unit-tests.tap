@@ -1,0 +1,382 @@
+TAP version 13
+# Subtest: JSON response
+ok 1 - JSON response
+  ---
+  duration_ms: 3.9517
+  type: 'test'
+  ...
+# Subtest: SSE keepalive before result
+ok 2 - SSE keepalive before result
+  ---
+  duration_ms: 0.4617
+  type: 'test'
+  ...
+# Subtest: SSE notifications skipped, multiline data supported
+ok 3 - SSE notifications skipped, multiline data supported
+  ---
+  duration_ms: 0.3342
+  type: 'test'
+  ...
+# Subtest: missing response fails explicitly
+ok 4 - missing response fails explicitly
+  ---
+  duration_ms: 0.6355
+  type: 'test'
+  ...
+# Subtest: JSON RPC error preserved
+ok 5 - JSON RPC error preserved
+  ---
+  duration_ms: 0.3086
+  type: 'test'
+  ...
+# Subtest: Bereichsaufgaben werden keinem Mitarbeiter zugerechnet
+ok 6 - Bereichsaufgaben werden keinem Mitarbeiter zugerechnet
+  ---
+  duration_ms: 45.6509
+  type: 'test'
+  ...
+# Subtest: Persönliche Zuweisung zeigt belegte Erledigung und Termintreue
+ok 7 - Persönliche Zuweisung zeigt belegte Erledigung und Termintreue
+  ---
+  duration_ms: 2.6339
+  type: 'test'
+  ...
+# Subtest: IT-Service zusammengeführt, automatische Prüfungen separat
+ok 8 - IT-Service zusammengeführt, automatische Prüfungen separat
+  ---
+  duration_ms: 1.0528
+  type: 'test'
+  ...
+# Subtest: Entwürfe erzeugen keine Leistungszahlen
+ok 9 - Entwürfe erzeugen keine Leistungszahlen
+  ---
+  duration_ms: 1.9
+  type: 'test'
+  ...
+# Subtest: Mehrdeutige Namen werden nicht automatisch einer Person zugerechnet
+ok 10 - Mehrdeutige Namen werden nicht automatisch einer Person zugerechnet
+  ---
+  duration_ms: 0.8506
+  type: 'test'
+  ...
+# Subtest: Portal replaces all Slack and Notion tasks, without dropping checklist requirements
+ok 11 - Portal replaces all Slack and Notion tasks, without dropping checklist requirements
+  ---
+  duration_ms: 1.5559
+  type: 'test'
+  ...
+# Subtest: missing company address remains an explicit warning, invalid address is rejected
+ok 12 - missing company address remains an explicit warning, invalid address is rejected
+  ---
+  duration_ms: 7.3351
+  type: 'test'
+  ...
+# Subtest: invalid date and missing manager rejected
+ok 13 - invalid date and missing manager rejected
+  ---
+  duration_ms: 1.5089
+  type: 'test'
+  ...
+# Subtest: one and two week check-ins use calendar weeks
+ok 14 - one and two week check-ins use calendar weeks
+  ---
+  duration_ms: 2.6008
+  type: 'test'
+  ...
+# Subtest: completion requires evidence, blocked requires explanation
+ok 15 - completion requires evidence, blocked requires explanation
+  ---
+  duration_ms: 0.7192
+  type: 'test'
+  ...
+# Subtest: employee projection excludes HR comments, contracts, emails and workflow payloads
+ok 16 - employee projection excludes HR comments, contracts, emails and workflow payloads
+  ---
+  duration_ms: 0.422
+  type: 'test'
+  ...
+# Subtest: Berlin date handles midnight and DST boundary
+ok 17 - Berlin date handles midnight and DST boundary
+  ---
+  duration_ms: 34.5997
+  type: 'test'
+  ...
+# Subtest: Rates exclude unknown completions, show overdue and future tasks separately
+ok 18 - Rates exclude unknown completions, show overdue and future tasks separately
+  ---
+  duration_ms: 5.7461
+  type: 'test'
+  ...
+# Subtest: No data yields no invented percentages; draft tasks excluded
+ok 19 - No data yields no invented percentages; draft tasks excluded
+  ---
+  duration_ms: 0.9507
+  type: 'test'
+  ...
+# Subtest: Reopening resets completion and new completion records a timestamp
+ok 20 - Reopening resets completion and new completion records a timestamp
+  ---
+  duration_ms: 1.7022
+  type: 'test'
+  ...
+# Subtest: Legacy completion inferred only from actual state history
+ok 21 - Legacy completion inferred only from actual state history
+  ---
+  duration_ms: 0.3185
+  type: 'test'
+  ...
+# Subtest: Management projection omits HR records, messages and private evidence
+ok 22 - Management projection omits HR records, messages and private evidence
+  ---
+  duration_ms: 1.4293
+  type: 'test'
+  ...
+# Subtest: All 33 checklist steps have specific action forms
+ok 23 - All 33 checklist steps have specific action forms
+  ---
+  duration_ms: 2.653
+  type: 'test'
+  ...
+# Subtest: Access completion requires actual login details and confirmation
+ok 24 - Access completion requires actual login details and confirmation
+  ---
+  duration_ms: 0.8782
+  type: 'test'
+  ...
+# Subtest: URL credentials and executable schemes are rejected
+ok 25 - URL credentials and executable schemes are rejected
+  ---
+  duration_ms: 0.3212
+  type: 'test'
+  ...
+# Subtest: Private HR fields and shipping address never become employee output
+ok 26 - Private HR fields and shipping address never become employee output
+  ---
+  duration_ms: 1.0911
+  type: 'test'
+  ...
+# Subtest: Drafts are not published; unknown fields and invalid numbers rejected
+ok 27 - Drafts are not published; unknown fields and invalid numbers rejected
+  ---
+  duration_ms: 0.3877
+  type: 'test'
+  ...
+# Subtest: Training completion requires the employee response to the same material
+ok 28 - Training completion requires the employee response to the same material
+  ---
+  duration_ms: 0.6254
+  type: 'test'
+  ...
+# Subtest: nur eigene explizit zugewiesene Bereichsaufgaben bearbeitbar
+ok 29 - nur eigene explizit zugewiesene Bereichsaufgaben bearbeitbar
+  ---
+  duration_ms: 1.2599
+  type: 'test'
+  ...
+# Subtest: Abschluss braucht Auftrag, Ergebnis und Bestätigung
+ok 30 - Abschluss braucht Auftrag, Ergebnis und Bestätigung
+  ---
+  duration_ms: 0.8579
+  type: 'test'
+  ...
+# Subtest: CRM statistics distinguish known completion, missing evidence, overdue and cancelled
+ok 31 - CRM statistics distinguish known completion, missing evidence, overdue and cancelled
+  ---
+  duration_ms: 45.6011
+  type: 'test'
+  ...
+# Subtest: Berlin midnight determines deadlines; edits after completion do not change it
+ok 32 - Berlin midnight determines deadlines; edits after completion do not change it
+  ---
+  duration_ms: 10.043
+  type: 'test'
+  ...
+# Subtest: No invented rates when no dated completions exist
+ok 33 - No invented rates when no dated completions exist
+  ---
+  duration_ms: 0.2746
+  type: 'test'
+  ...
+# Subtest: role homes, protected areas and login return targets stay separated
+ok 34 - role homes, protected areas and login return targets stay separated
+  ---
+  duration_ms: 8.8945
+  type: 'test'
+  ...
+# Subtest: late HR initialization cannot overwrite a confirmed employee identity or CSRF
+ok 35 - late HR initialization cannot overwrite a confirmed employee identity or CSRF
+  ---
+  duration_ms: 0.7615
+  type: 'test'
+  ...
+# Subtest: late guest 401 cannot clear a newly accepted employee session
+ok 36 - late guest 401 cannot clear a newly accepted employee session
+  ---
+  duration_ms: 0.3662
+  type: 'test'
+  ...
+# Subtest: login rejects a restored HR profile when the employee login response named another account
+ok 37 - login rejects a restored HR profile when the employee login response named another account
+  ---
+  duration_ms: 8.6158
+  type: 'test'
+  ...
+# Subtest: activation-to-login can explicitly switch an existing HR browser profile to employee
+ok 38 - activation-to-login can explicitly switch an existing HR browser profile to employee
+  ---
+  duration_ms: 0.4961
+  type: 'test'
+  ...
+# Subtest: failed employee login never claims an employee identity or redirects an existing HR session
+ok 39 - failed employee login never claims an employee identity or redirects an existing HR session
+  ---
+  duration_ms: 2.5235
+  type: 'test'
+  ...
+# Subtest: logout clears the accepted identity and prevents a late refresh from restoring HR
+ok 40 - logout clears the accepted identity and prevents a late refresh from restoring HR
+  ---
+  duration_ms: 0.5136
+  type: 'test'
+  ...
+# Subtest: failed logout does not falsely claim success
+ok 41 - failed logout does not falsely claim success
+  ---
+  duration_ms: 8.6272
+  type: 'test'
+  ...
+# Subtest: session refresh after another tab changes cookie removes the old identity while checking
+ok 42 - session refresh after another tab changes cookie removes the old identity while checking
+  ---
+  duration_ms: 3.3087
+  type: 'test'
+  ...
+# Subtest: employee profile cannot be bound to another employee id
+ok 43 - employee profile cannot be bound to another employee id
+  ---
+  duration_ms: 0.9478
+  type: 'test'
+  ...
+# Subtest: invalid login credentials are not described as an expired session
+ok 44 - invalid login credentials are not described as an expired session
+  ---
+  duration_ms: 0.6279
+  type: 'test'
+  ...
+# Subtest: all backend employee states have German labels
+ok 45 - all backend employee states have German labels
+  ---
+  duration_ms: 1.6288
+  type: 'test'
+  ...
+# Subtest: all backend processing states have German labels
+ok 46 - all backend processing states have German labels
+  ---
+  duration_ms: 1.0125
+  type: 'test'
+  ...
+# Subtest: all invitation and delivery states have labels
+ok 47 - all invitation and delivery states have labels
+  ---
+  duration_ms: 0.2249
+  type: 'test'
+  ...
+# Subtest: approval only possible after completed onboarding on pending employee
+ok 48 - approval only possible after completed onboarding on pending employee
+  ---
+  duration_ms: 0.2784
+  type: 'test'
+  ...
+# Subtest: invitation sending requires approved employee
+ok 49 - invitation sending requires approved employee
+  ---
+  duration_ms: 0.3081
+  type: 'test'
+  ...
+# Subtest: approved and active employees have HR approval
+ok 50 - approved and active employees have HR approval
+  ---
+  duration_ms: 0.2474
+  type: 'test'
+  ...
+# Subtest: processing polls automatically and terminal phases remain explicit and gated
+ok 51 - processing polls automatically and terminal phases remain explicit and gated
+  ---
+  duration_ms: 0.2524
+  type: 'test'
+  ...
+# Subtest: accepts a valid onboarding form
+ok 52 - accepts a valid onboarding form
+  ---
+  duration_ms: 2.13
+  type: 'test'
+  ...
+# Subtest: reports all six missing required fields
+ok 53 - reports all six missing required fields
+  ---
+  duration_ms: 0.3752
+  type: 'test'
+  ...
+# Subtest: rejects invalid email
+ok 54 - rejects invalid email
+  ---
+  duration_ms: 0.3446
+  type: 'test'
+  ...
+# Subtest: rejects impossible leap days
+ok 55 - rejects impossible leap days
+  ---
+  duration_ms: 0.1856
+  type: 'test'
+  ...
+# Subtest: rejects invalid calendar dates
+ok 56 - rejects invalid calendar dates
+  ---
+  duration_ms: 0.2033
+  type: 'test'
+  ...
+# Subtest: validates usernames without whitespace
+ok 57 - validates usernames without whitespace
+  ---
+  duration_ms: 0.2429
+  type: 'test'
+  ...
+# Subtest: rejects too-short activation password
+ok 58 - rejects too-short activation password
+  ---
+  duration_ms: 0.1952
+  type: 'test'
+  ...
+# Subtest: rejects mismatching passwords
+ok 59 - rejects mismatching passwords
+  ---
+  duration_ms: 0.1513
+  type: 'test'
+  ...
+# Subtest: accepts matching long activation credentials
+ok 60 - accepts matching long activation credentials
+  ---
+  duration_ms: 0.2379
+  type: 'test'
+  ...
+# Subtest: backend username policy: lowercase 3 to 64 characters and valid first character
+ok 61 - backend username policy: lowercase 3 to 64 characters and valid first character
+  ---
+  duration_ms: 0.2969
+  type: 'test'
+  ...
+# Subtest: password longer than 128 rejected
+ok 62 - password longer than 128 rejected
+  ---
+  duration_ms: 0.2673
+  type: 'test'
+  ...
+1..62
+# tests 62
+# suites 0
+# pass 62
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 992.1441

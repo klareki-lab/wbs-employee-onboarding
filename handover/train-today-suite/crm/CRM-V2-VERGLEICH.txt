@@ -1,0 +1,135 @@
+TRAIN TODAY CRM – FUNKTIONSVERGLEICH UND LOKALER AUSBAU
+Stand: 24.10.2026
+
+RECHERCHE: HERSTELLERINFORMATIONEN
+
+CentralStationCRM
+https://centralstationcrm.de/features-funktionen
+Der Hersteller beschreibt Kontakt- und Firmenverwaltung, Schlagwörter und Filter,
+Dublettenprüfung, Aufgabenlisten und Vorlagen sowie Angebote mit Wahrscheinlichkeiten.
+Für unseren Hub übernommen: eigenständige Kontaktliste, Suche, Filter, private
+gespeicherte Ansichten, Aufgabenvorlagen und Prüflisten für mögliche Dubletten.
+
+weclapp
+https://www.weclapp.com/de/crm-Software/
+https://www.weclapp.com/de/preise/
+Die Herstellerseiten stellen Kundenakten, Kontakthistorie, Vertriebspipeline,
+Chancen, Angebote, Aufgaben und die Verbindung mit Auftragsprozessen heraus.
+Für unseren Hub umgesetzt: zentrale Kundenakte, kompakte Listen, strukturierte
+Angebotspositionen und eine ausdrücklich bestätigte Übernahme in einen Auftrag.
+
+CAS genesisWorld
+https://www.cas.de/loesungen/crm-xrm/cas-genesisworld/funktionen/
+https://hilfe.cas.de/CgW/de/Desktop_Client/x14/Verkaufschance_neu_aendern.htm
+Die Herstellerdokumentation beschreibt rollenbezogene Cockpits, chronologische
+Kundenakten, verknüpfte Datensätze und Verkaufschancen mit Positionen und
+Abschlusswahrscheinlichkeit.
+Für unseren Hub umgesetzt: rollenbezogener Arbeitsplatz, Kundenakte mit Registern,
+verknüpfte Vorgänge und Monatsprognosen mit explizit gepflegten Wahrscheinlichkeiten.
+
+1CRM
+https://1crm-system.de/crm-funktionen/
+Die Herstellerseite verbindet Kommunikation, Vertrieb, Marketing, Kundenservice,
+Projektmanagement und Reporting. Genannt werden unter anderem segmentierte
+Kampagnen, Servicefälle und Vertriebsprognosen.
+Für unseren Hub umgesetzt: Servicefälle mit Lösungspflicht beim Abschluss,
+Kampagnenplanung mit prüfbarer Empfängerliste und eine separate Umsatzprognose.
+
+Dies ist eine Funktionsrecherche aus offiziellen Produktinformationen, kein
+vollständiger Produkttest oder Vergleich der kostenpflichtigen Lizenzpakete.
+Die Umsetzung ist eigenständig; keine Oberfläche eines Herstellers wurde kopiert.
+
+NEU IM CRM-HUB V2
+
+1. Eigenständige CRM-Oberfläche
+   Helle, kompakte Arbeitsoberfläche; gruppierte Navigation; globale Suche;
+   Firmen- und Kontaktlisten; Listen- und Boardansicht der Verkaufschancen.
+   Weiterhin eine einzige CRM-Hub.html, einschließlich aller Styles und Skripte.
+
+2. Unternehmen und Kundenakte
+   Kundennummer, Beziehungsstatus, Adresse, Branche, Schlagwörter, Kundenhinweis.
+   Register: Übersicht, Kontakte, Verkaufschancen, Aktivitäten, Angebote/Dokumente,
+   Service. Es werden ausschließlich berechtigte Projektinformationen angezeigt.
+
+3. Kontaktmanagement
+   Eigene Kontaktliste mit Suche, Abteilung, Newsletterstatus, Nachweisdatum,
+   Kontaktsperre und nächstem Prüftermin. Kontakte bleiben projektbezogen.
+   Gleiche E-Mail-Adressen werden als Prüfhinweis erkannt, nicht automatisch vereint.
+
+4. Verkaufschancen und Prognose
+   Filter nach Phase, Verantwortlichen, Messe und fehlenden nächsten Schritten.
+   Eigene Filteransichten werden pro Benutzer in PostgreSQL gespeichert.
+   Chancenwert, Abschlussdatum, Wahrscheinlichkeit und Prognosekategorie.
+   Monatsübersicht: ungewichteter Wert, gewichteter Wert und verbindliche Prognose.
+   Fehlende Angaben bleiben offen. Kein Budget wird still zum Umsatz erklärt.
+   Pausierte, ausgeschlossene und bereits abgeschlossene Chancen werden nicht als
+   offene Pipeline berechnet. Prognosen beeinflussen keine Prämienauszahlung.
+
+5. Angebote
+   Positionen mit Menge, Nettopreis, Rabatt und 0/7/19 Prozent Steuer.
+   Der Server berechnet jede Nettozeile und ihre Steuer auf zwei Nachkommastellen;
+   danach summiert er die gerundeten Beträge. Das ist die definierte Rundungsmethode.
+   Vorschau und Druck/PDF, Zahlungsbedingungen, Gültigkeit, eindeutige Nummer.
+   Ausgegebene Angebote erhalten für Preisänderungen eine neue Fassung.
+   Die Geschäftsführung kann ein angenommenes Angebot einmalig in einen Auftrag
+   übernehmen. Der Zahlungseingang bleibt dabei ausdrücklich null.
+   Dies sind Testangebote, keine Rechnungen oder steuerlich geprüften Belege.
+
+6. Kalender und Vorlagen
+   Lokale Termine mit Start, Ende, Ort, Status und Zuständigkeit; Wochenansicht
+   einschließlich fälliger Aufgaben; ICS-Export. Keine automatische Einladung.
+   Drei Standardvorlagen: Messekontakt nachbereiten, Angebot begleiten,
+   Neukunden starten. Die Leitung kann Vorlagen ergänzen und bearbeiten.
+   Eine Anwendung erzeugt konkrete Aufgaben, gerechnet ab einem gewählten Datum.
+
+7. Kundenservice und Dokumentverweise
+   Servicefälle mit Priorität, Kategorie, Verantwortlichen, Fälligkeit und Lösung.
+   Geschlossene/gelöste Fälle benötigen einen Lösungsvermerk.
+   Dokumentlinks werden einem Projekt und damit der Kundenakte zugeordnet.
+   Es werden keine Dokumentdateien hochgeladen oder Inhalte automatisch geladen.
+
+8. Kampagnen und Datenqualität
+   Leitung plant Kampagnen nach Branche und Firmenschlagwort.
+   Empfängervorschau und CSV-Export prüfen die aktuelle Datenbank über den Server:
+   expliziter Newsletterstatus, Nachweis und Datum sind erforderlich; Sperren
+   und Abmeldungen bei derselben E-Mail-Adresse haben Vorrang; Adressen einmalig.
+   Kein Versand. Die Eignung für einen konkreten Versandzweck bleibt zu prüfen.
+   Datenqualität zeigt mögliche Kontakt-Dubletten, fällige Kontaktprüfungen,
+   fehlende Prognoseangaben und Unternehmen ohne zugeordnete Chancen.
+
+9. Anbindung des separaten Messe-Workflows
+   Versionierte, authentifizierte Lese-API /api/v1/… ergänzt.
+   Schreibaktionen nutzen weiterhin /api/command mit eindeutiger Anfrage-ID und
+   Versionsprüfung. Beschreibung: CRM-V2-API.txt.
+   Der spätere CRM-Adapter kann diese Schnittstelle verwenden. Ein produktiver
+   Drittanbieter-Connector, OAuth oder ein dauerhafter Servicezugang wurde nicht
+   automatisch eingerichtet.
+
+WEITERHIN VORHANDEN
+Messeerfassung, Originalnotizen, lokale Entwürfe, nachträgliche Synchronisation,
+lesender Assistent, bestätigte Übergaben, Projektzusammenführung, Audit-Verlauf,
+Aufträge/Zahlungen, leistungsbezogene Beiträge und geprüfte Prämienabrechnung.
+Sergiis vier Kern-Workflows und sein trade_fair-Schema wurden nicht verändert.
+
+BEWUSSTE GRENZEN DES PROTOTYPS
+Keine vollständige ERP-/Finanzbuchhaltung, E-Rechnungen, automatische Bankanbindung,
+echte Mailbox-/Kalendersynchronisation, Dateianhangsspeicherung, Telefonie,
+automatische Löschfristen oder vollständige Datenschutzfallbearbeitung.
+Keine allgemeine Zusicherung rechtlicher oder steuerlicher Konformität.
+Keine automatische Firmensuche oder Übernahme unbestätigter Unternehmensdaten.
+Keine globale Personenakte: Kontaktzusammenführung ist weiterhin eine spätere
+Erweiterung. Die vorhandenen 14 ungenutzten Firmenplatzhalter wurden beibehalten.
+Die Original-Testgespräche wurden nicht mit erfundenen Umsätzen angereichert.
+Neue Prognosen zeigen daher anfangs bewusst fehlende Angaben.
+
+TECHNIK UND RÜCKWEG
+Nur lokale Docker-PostgreSQL-Datenbank, weiterhin Port 55432; Oberfläche Port 3080.
+Zusätzliche Migration: sql/013-crm-workspace.sql. Sie lässt trade_fair unverändert
+und kann wiederholt ausgeführt werden. Start-CRM.ps1 führt sie automatisch aus.
+Die laufende lokale Installation ist bereits aktualisiert.
+Die vorherige Oberfläche/Quellen sind in backups/CRM-v1-vor-Ausbau.zip gesichert.
+Die Datenbank vor dem Ausbau liegt als backups/crm-20261024-223840.dump vor.
+Datenbanksicherungen enthalten vertrauliche Zugangshashes: nicht mit dem
+öffentlichen Quellpaket weitergeben.
+
+Die bisherigen persönlichen Zugangsdaten funktionieren unverändert.

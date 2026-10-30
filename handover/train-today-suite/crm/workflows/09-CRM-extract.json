@@ -1,0 +1,106 @@
+{
+  "name": "CRM — Notiz und Visitenkarte prüfen",
+  "active": false,
+  "nodes": [
+    {
+      "id": "17e35acb-2471-4791-82cc-b82de945d9df",
+      "name": "CRM Anfrage",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "webhookId": "fe33e1b6-a62a-47aa-9369-053663927dca",
+      "position": [
+        0,
+        0
+      ],
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "crm/extensions/extract",
+        "responseMode": "responseNode",
+        "options": {}
+      }
+    },
+    {
+      "id": "80de4810-4eea-4825-850b-fa7f23b8f413",
+      "name": "Persönlich berechtigte CRM Anfrage",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        260,
+        0
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "http://crm:3080/api/extract",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "={{ $json.headers.authorization || \"\" }}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json.body) }}",
+        "options": {
+          "timeout": 55000,
+          "response": {
+            "response": {
+              "fullResponse": true,
+              "neverError": true
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "0a9206fb-4169-45b7-aa06-62bff794eeba",
+      "name": "Antwort",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.4,
+      "position": [
+        520,
+        0
+      ],
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json.body }}",
+        "options": {
+          "responseCode": "={{ $json.statusCode }}"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "CRM Anfrage": {
+      "main": [
+        [
+          {
+            "node": "Persönlich berechtigte CRM Anfrage",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Persönlich berechtigte CRM Anfrage": {
+      "main": [
+        [
+          {
+            "node": "Antwort",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "saveDataErrorExecution": "none",
+    "saveDataSuccessExecution": "none",
+    "saveManualExecutions": false
+  },
+  "id": "trainTodayCrm09"
+}

@@ -1,0 +1,92 @@
+{
+  "name": "CRM — Fällige Aufgaben prüfen",
+  "active": false,
+  "nodes": [
+    {
+      "id": "3091d284-9473-47a6-9f1d-a793035749bc",
+      "name": "Alle zwei Minuten",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        0,
+        0
+      ],
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "minutes",
+              "minutesInterval": 2
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "c6e7688c-a7e3-4520-ac41-459cd938fda9",
+      "name": "Manuell prüfen",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        0,
+        180
+      ],
+      "parameters": {}
+    },
+    {
+      "id": "f26ff053-84fb-49f7-a194-73fa708b7257",
+      "name": "CRM Erweiterung ausführen",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        280,
+        0
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "http://crm:3080/internal/reminders",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "options": {
+          "timeout": 55000
+        }
+      },
+      "credentials": {
+        "httpHeaderAuth": {
+          "name": "CRM Interner Dienst"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Alle zwei Minuten": {
+      "main": [
+        [
+          {
+            "node": "CRM Erweiterung ausführen",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Manuell prüfen": {
+      "main": [
+        [
+          {
+            "node": "CRM Erweiterung ausführen",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "saveDataErrorExecution": "none",
+    "saveDataSuccessExecution": "none",
+    "saveManualExecutions": false
+  },
+  "id": "trainTodayCrm07"
+}
