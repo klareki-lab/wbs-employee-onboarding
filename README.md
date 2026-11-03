@@ -1,5 +1,7 @@
 # WBS Employee Onboarding Assistant — MVP v1
 
+> **Portfolio-Hinweis:** Eigenständiges lokales WBS-Lernprojekt. Die später integrierte HR-/CRM-Demonstration und meine Beiträge zur Systemintegration sind in der [Train Today AI Business Suite](https://github.com/klareki-lab/Train-Today-AI-Business-Suite) dokumentiert. [Ausgewählte Arbeitsproben](https://github.com/klareki-lab/Train-Today-AI-Business-Suite/blob/main/PORTFOLIO.md).
+
 A local employee onboarding application: HR registers an employee, three real AI agents prepare onboarding information, HR reviews and approves it, and a personal invitation lets the employee activate an independent account and open the employee portal.
 
 **Released: [`v1.0.0`](https://github.com/klarekipro/wbs-employee-onboarding/tree/v1.0.0).** Integration [PR #4](https://github.com/klarekipro/wbs-employee-onboarding/pull/4) was merged into `main` on 2026-10-27. This is a **local-only** application; there is no VPS deployment. For a stable reference use the `v1.0.0` tag. Future documentation or feature changes in `main` do not alter that tag.
