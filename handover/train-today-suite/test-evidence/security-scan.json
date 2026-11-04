@@ -1,0 +1,8 @@
+{
+  "scope": "new public suite files; excludes encrypted archive, ignored .env and .private",
+  "textFilesScanned": 268,
+  "knownSecretMatches": [],
+  "archiveHeaderEncryption": true,
+  "archiveTest": "passed",
+  "archiveExtractionFileComparison": "5 of 5 identical"
+}

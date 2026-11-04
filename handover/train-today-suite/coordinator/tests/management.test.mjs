@@ -1,0 +1,15 @@
+import {test} from 'node:test';
+import assert from 'node:assert/strict';
+import {berlinDay,completedAt,managementReport} from '../management.mjs';
+import {validateTaskChange} from '../domain.mjs';
+const base={id:'case',hrEmployeeId:'employee',status:'approved',employee:{fullName:'Prüfung',department:'IT',role:'Fachkraft',startDate:'2026-11-02'},runs:[]};
+test('Berlin date handles midnight and DST boundary',()=>{assert.equal(berlinDay('2026-10-29T23:30:00Z'),'2026-10-30');assert.equal(berlinDay('2026-10-24T22:30:00Z'),'2026-10-25');});
+test('Rates exclude unknown completions, show overdue and future tasks separately',()=>{
+ const tasks=[{id:'A',state:'done',due:'2026-10-29',completedAt:'2026-10-29T22:30:00Z'},{id:'B',state:'done',due:'2026-10-29',completedAt:'2026-10-29T23:30:00Z'},{id:'C',state:'done',due:'2026-10-29'},{id:'D',state:'open',due:'2026-10-28'},{id:'E',state:'open',due:'2026-11-01'}].map(t=>({...t,owner:'IT',title:t.id}));
+ const r=managementReport([{...base,result:{tasks}}],[],new Date('2026-10-29T12:00:00Z'));
+ assert.deepEqual(r.metrics,{total:5,done:3,open:2,onTime:1,late:1,unknown:1,overdue:1,completionPercent:60,onTimePercent:50});assert.equal(r.plans[0].atRisk,true);assert.equal(r.plans[0].preStartOpen,2);
+});
+test('No data yields no invented percentages; draft tasks excluded',()=>{const r=managementReport([{...base,status:'pending_approval',result:{tasks:[{id:'G01',state:'done',owner:'HR'}]}}]);assert.equal(r.metrics.total,0);assert.equal(r.metrics.onTimePercent,null);assert.equal(r.metrics.completionPercent,null);});
+test('Reopening resets completion and new completion records a timestamp',()=>{const old={state:'done',completedAt:'2026-10-20T12:00:00Z',owner:'IT'};const reopened=validateTaskChange(old,{state:'open'});assert.equal(reopened.completedAt,null);const done=validateTaskChange(reopened,{state:'done',evidence:'Nachweis'});assert.ok(Date.parse(done.completedAt)>Date.parse(old.completedAt));assert.equal(validateTaskChange(done,{state:'done',evidence:'Ergänzung'}).completedAt,done.completedAt);});
+test('Legacy completion inferred only from actual state history',()=>{assert.equal(completedAt({state:'done',comments:[{state:'done',at:'2026-10-20T12:00:00Z'},{state:'open',at:'2026-10-21T12:00:00Z'},{state:'done',at:'2026-10-22T12:00:00Z'},{state:'done',at:'2026-10-23T12:00:00Z',stateChanged:false}]},base),'2026-10-22T12:00:00Z');assert.equal(completedAt({state:'done',comments:[{state:'done',at:'2026-10-20T12:00:00Z',stateChanged:false}]},base),null);});
+test('Management projection omits HR records, messages and private evidence',()=>{const r=managementReport([{...base,employee:{...base.employee,personalEmail:'private@example.invalid'},result:{draft:{body:'privat'},tasks:[{id:'G02',title:'HR-Akte',owner:'HR',evidence:'privater Vertrag',comments:['privat']}]}}],[{id:'other',first_name:'Ohne',last_name:'Plan',department:'Sales',start_date:'2026-11-01',personal_email:'private@example.invalid'}]);const text=JSON.stringify(r);assert.ok(!text.includes('private@example'));assert.ok(!text.includes('privater Vertrag'));assert.equal(r.unplanned.length,1);});

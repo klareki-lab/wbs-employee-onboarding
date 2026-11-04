@@ -1,0 +1,135 @@
+[
+  {
+    "name": "Unauthenticated portal access denied",
+    "passed": true
+  },
+  {
+    "name": "Restored HR login",
+    "passed": true
+  },
+  {
+    "name": "Restored task and deadline report",
+    "passed": true,
+    "detail": {
+      "status": 200,
+      "keys": [
+        "today",
+        "soon",
+        "metrics",
+        "plans",
+        "responsibleGroups",
+        "byAssignee",
+        "unplanned",
+        "definition"
+      ]
+    }
+  },
+  {
+    "name": "Restored employee roster",
+    "passed": true,
+    "detail": {
+      "count": 17
+    }
+  },
+  {
+    "name": "Restored HR tasks",
+    "passed": true,
+    "detail": {
+      "count": 433
+    }
+  },
+  {
+    "name": "Restored chat membership and history",
+    "passed": true,
+    "detail": {
+      "count": 4
+    }
+  },
+  {
+    "name": "Restored login: leitung",
+    "passed": true
+  },
+  {
+    "name": "IT-only group creation permission: leitung",
+    "passed": true
+  },
+  {
+    "name": "Personal task access: leitung",
+    "passed": true,
+    "detail": {
+      "count": 30
+    }
+  },
+  {
+    "name": "Leadership CRM bridge permission: leitung",
+    "passed": true,
+    "detail": {
+      "status": 200,
+      "projects": 58
+    }
+  },
+  {
+    "name": "Restored login: jonas",
+    "passed": true
+  },
+  {
+    "name": "IT-only group creation permission: jonas",
+    "passed": true
+  },
+  {
+    "name": "Personal task access: jonas",
+    "passed": true,
+    "detail": {
+      "count": 109
+    }
+  },
+  {
+    "name": "Leadership CRM bridge permission: jonas",
+    "passed": true,
+    "detail": {
+      "status": 403,
+      "projects": 0
+    }
+  },
+  {
+    "name": "Restored login: anna.berger",
+    "passed": true
+  },
+  {
+    "name": "IT-only group creation permission: anna.berger",
+    "passed": true
+  },
+  {
+    "name": "Personal task access: anna.berger",
+    "passed": true,
+    "detail": {
+      "count": 16
+    }
+  },
+  {
+    "name": "Leadership CRM bridge permission: anna.berger",
+    "passed": true,
+    "detail": {
+      "status": 403,
+      "projects": 0
+    }
+  },
+  {
+    "name": "Restored persistent Mailpit mailbox",
+    "passed": true,
+    "detail": {
+      "messages": 31
+    }
+  },
+  {
+    "name": "Restored CRM login",
+    "passed": true
+  },
+  {
+    "name": "Restored CRM records",
+    "passed": true,
+    "detail": {
+      "records": 858
+    }
+  }
+]

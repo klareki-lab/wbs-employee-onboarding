@@ -1,0 +1,50 @@
+[
+  {
+    "source": "C:\\Users\\jurib\\Desktop\\N8N\\messe-hub\\workflows\\01-WBS-WF-A-Lead-Capture.json",
+    "copy": "workflows/01-CRM-WF-A-Lead-Capture.json",
+    "source_sha256": "fabfbaf66bea5e41d1fef97a41ad1e5243f43d402a099fdc99b27e96c65113b0",
+    "allowed_changes": [
+      "Workflow name, inactive import metadata",
+      "New node and webhook IDs",
+      "Webhook path: crm/core/*",
+      "Separate credential references"
+    ],
+    "core_parameters_sha256": "5d22c4656522afe9b68c211a0508641e439f486458061e03b0cf2bdaeb8c96c2"
+  },
+  {
+    "source": "C:\\Users\\jurib\\Desktop\\N8N\\messe-hub\\workflows\\02-WBS-WF-B-Lead-Processing.json",
+    "copy": "workflows/02-CRM-WF-B-Lead-Processing.json",
+    "source_sha256": "d538f846a16f76f46f20695538d5817cfe67015496fa771e466498e28b9e0dce",
+    "allowed_changes": [
+      "Workflow name, inactive import metadata",
+      "New node and webhook IDs",
+      "Webhook path: crm/core/*",
+      "Separate credential references"
+    ],
+    "core_parameters_sha256": "1dee61c53c5ebf52b6a3ec4c8b4bfc647fa729adf31c34aa0dad7916a746322f"
+  },
+  {
+    "source": "C:\\Users\\jurib\\Desktop\\N8N\\messe-hub\\workflows\\03-WBS-Lead-Status.json",
+    "copy": "workflows/03-CRM-Lead-Status.json",
+    "source_sha256": "00b94bb58fa53c1049eb4eb55aa92d8f4125747c14bf282f3ae7e50a7b766c0e",
+    "allowed_changes": [
+      "Workflow name, inactive import metadata",
+      "New node and webhook IDs",
+      "Webhook path: crm/core/*",
+      "Separate credential references"
+    ],
+    "core_parameters_sha256": "72ac552b9d79380cb67096fec49d48c1361eafc2760efa3ff34298a5caacf006"
+  },
+  {
+    "source": "C:\\Users\\jurib\\Desktop\\N8N\\messe-hub\\workflows\\04-WBS-Sales-Email-Delivery.json",
+    "copy": "workflows/04-CRM-Sales-Email-Delivery.json",
+    "source_sha256": "4121b9afaffdf715676524f1aa30c22d22a16962e22cfd006f728645f3213bd1",
+    "allowed_changes": [
+      "Workflow name, inactive import metadata",
+      "New node and webhook IDs",
+      "Webhook path: crm/core/*",
+      "Separate credential references"
+    ],
+    "core_parameters_sha256": "36bb8ecb214ac379eea3ecab9b898957ebff3f7b6083d3e76cfce9be3066fae7"
+  }
+]

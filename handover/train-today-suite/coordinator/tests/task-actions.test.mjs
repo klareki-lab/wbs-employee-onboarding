@@ -1,0 +1,10 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {taskSpec,validateAction,employeeAction} from '../task-actions.mjs';
+import {catalog} from '../catalog.mjs';
+test('All 33 checklist steps have specific action forms',()=>{assert.equal(catalog.length,33);for(const t of catalog)assert.ok(taskSpec(t.id).title);});
+test('Access completion requires actual login details and confirmation',()=>{assert.throws(()=>validateAction({id:'G05'},{state:'done',actionData:{}}));assert.doesNotThrow(()=>validateAction({id:'G05'},{state:'done',actionData:{username:'a@example.invalid',url:'https://accounts.google.com',scope:'Mitarbeiter',checked:true}}));});
+test('URL credentials and executable schemes are rejected',()=>{for(const url of ['javascript:alert(1)','https://name:password@example.invalid'])assert.throws(()=>validateAction({id:'G05'},{state:'open',actionData:{url}}));});
+test('Private HR fields and shipping address never become employee output',()=>{assert.equal(employeeAction({id:'G02',actionPublished:true,actionData:{address:'private'}}),null);assert.deepEqual(employeeAction({id:'G12',actionPublished:true,actionData:{address:'private',tracking:'123',checked:true}}),{tracking:'123'});});
+test('Drafts are not published; unknown fields and invalid numbers rejected',()=>{assert.equal(employeeAction({id:'G17',actionData:{url:'https://example.invalid'}}),null);assert.throws(()=>validateAction({id:'G05'},{state:'open',actionData:{password:'secret'}}));assert.throws(()=>validateAction({id:'G16'},{state:'open',actionData:{duration:'-1'}}));});
+test('Training completion requires the employee response to the same material',()=>{const data={name:'Security',url:'https://example.invalid/course',instructions:'Bitte absolvieren',checked:true};assert.throws(()=>validateAction({id:'G17',actionData:data},{state:'done',actionData:data}));assert.doesNotThrow(()=>validateAction({id:'G17',employeeConfirmation:{},actionData:data},{state:'done',actionData:data}));assert.throws(()=>validateAction({id:'G17',employeeConfirmation:{},actionData:data},{state:'done',actionData:{...data,url:'https://example.invalid/new'}}));});

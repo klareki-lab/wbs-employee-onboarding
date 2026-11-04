@@ -1,0 +1,12 @@
+.env
+.private/
+node_modules/
+dist/
+coverage/
+__pycache__/
+*.pyc
+*.dump
+*.sql.gz
+ZUGAENGE*
+*PRIVAT*
+*.log

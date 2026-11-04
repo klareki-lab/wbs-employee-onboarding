@@ -1,0 +1,21 @@
+{
+  "at": "2026-10-24T20:49:04.049Z",
+  "prefix": "CRM-V2-QA-1792874943619",
+  "company": "26124b10-c28e-437a-8628-381009c1f263",
+  "ids": [
+    "26124b10-c28e-437a-8628-381009c1f263"
+  ],
+  "results": [
+    {
+      "name": "CRM API requires authentication",
+      "passed": true
+    },
+    {
+      "name": "Customer master data and opportunity persist",
+      "passed": false,
+      "error": "{\"error\":\"Keine Berechtigung.\"}\n\n403 !== 200\n"
+    }
+  ],
+  "passed": 1,
+  "failed": 1
+}

@@ -1,0 +1,39 @@
+
+30.10.2026 – CRM in Train Today Onboard / Leitung
+================================================
+Ort: http://localhost:5173/dashboard/overview → CRM & Vertrieb.
+Berechtigung: workspace_permissions.leadership=true. Der vorhandene Zugang leitung (Mara Winter) besitzt diese Berechtigung. Ein HR- oder IT-Konto erhält dadurch nicht automatisch CRM-Einsicht.
+
+Funktionen:
+- Live-Abfrage der CRM-Projekte, Vertriebsaufgaben, Arbeitspakete, Fortschritte, Plan-/Ist-Stunden und Projektkommentare.
+- Vertrieb gewonnen und Lieferung abgeschlossen sind getrennte Status.
+- Abschlussdaten aus dokumentierten Statuswechseln im CRM-Audit; keine Ableitung aus dem letzten Änderungsdatum. Fehlt der Nachweis, wird die Aufgabe nicht in die Pünktlichkeitsquote aufgenommen. Stornierte Aufgaben werden ausgeschlossen.
+- Auswertung je CRM-Berater, Suche und Filter nach laufenden/abgeschlossenen Projekten, Überfälligkeit und Vertretungsbedarf.
+- Abwesenheiten (nicht verfügbar, Urlaub, krankgemeldet) werden ausdrücklich von der Leitung eingetragen und im Onboarding-PostgreSQL gespeichert; keine Diagnosen. Eine Krankheit wird niemals aus Fristüberschreitungen abgeleitet.
+- Aufgaben und Arbeitspakete direkt im CRM neu zuweisen, mit Begründung, Versionsprüfung und Änderungsprotokoll. Falls nötig, Projektzugriff ausdrücklich bestätigen. Aktuell abwesende Personen werden als Vertretung abgewiesen. Bestehende Fristen, Fortschritte, ursprüngliche Beiträge und Prämienabrechnungen werden nicht überschrieben.
+- Projekt-Assistent als seitliches Chatfenster, eigener gespeicherter Verlauf je Leitungskonto und Projektauswahl. Liest CRM-Fakten; keine Schreib- oder Versandwerkzeuge. Antworten zeigen Projektquellen und Datenstand. Bei KI-Ausfall erscheint ein gekennzeichneter lokaler Faktenbericht.
+- KI-Anbieter: vorhandener Requesty-Zugang, OpenAI-Modell openai/gpt-4.1-mini. Die Weitergabe der ausgewählten CRM-Projektstände, Aufgaben, Verantwortlichen und Kommentare wurde ausdrücklich freigegeben. HR-Akten und die Abwesenheitstabelle werden nicht in den KI-Kontext übernommen.
+
+Architektur:
+Portal /api/crm-leadership → authentifiziertes Onboarding-Backend → CRM /integration/leadership/{snapshot,reassign,assistant}.
+Verbindung über einen eigenen zufälligen Serverschlüssel, nur in lokalen ignorierten .env-Dateien. Keine CRM-Passwörter oder API-Schlüssel im Browser.
+Die CRM-Abfrage und der Assistent verwenden crm_agent (nur SELECT, default_transaction_read_only). Ein separates, eng begrenztes Übergabe-Ende nutzt die bestehende CRM-Leitungsberechtigung und protokolliert zusätzlich den tatsächlichen Onboard-Akteur. Der Assistent kann dieses Ende nicht aufrufen.
+Neue Tabellen: employee_onboarding.crm_absences, crm_leadership_events, crm_assistant_messages (Migration 007_crm_leadership.sql).
+CRM-Erweiterung: sql/015-leadership-reader.sql, eine gefilterte Ansicht für Abschlusszeitpunkte und lesende Freigabe der notwendigen Projektarten. Keine Änderung am trade_fair-Kern oder an n8n-Workflows.
+Benötigte Konfiguration ohne Werte: CRM_LEADERSHIP_URL, CRM_LEADERSHIP_KEY (Onboarding); LEADERSHIP_BRIDGE_KEY, LEADERSHIP_CRM_LOGIN, LEADERSHIP_AI_KEY, LEADERSHIP_AI_BASE_URL, LEADERSHIP_AI_MODEL (CRM).
+
+Tests:
+29 Integrationstests bestanden, einschließlich echter KI-Antwort, Rechteprüfung, CSRF, direkter CRM-Zuweisung, Projektzugriff, Idempotenz, Versionskonflikt, Abwesenheiten, Verlauf, Datenbank-Schreibverbot des Assistenten und mobiler Ansicht.
+3 zusätzliche Tests zur Berechnung der CRM-Fristen und Abschlussquoten bestanden.
+Nachweis: CRM-LEADERSHIP-TEST-RESULTS.json. Temporäre Testkonten/-projekte und Test-Abwesenheiten entfernt; bestehende Datensatzanzahlen unverändert.
+
+Betrieb und Grenzen:
+CRM-App und CRM-Datenbank müssen laufen. Beim Ausfall wird ein Fehler angezeigt, keine leere Datenbank als Tatsachenstand behauptet. Mit CRM aktualisieren aktuelle Daten abrufen; kein automatischer Live-Push.
+Onboarding und CRM bleiben getrennte Datenquellen im selben Leitungsbereich; vorhandene CRM-Berater-IDs werden verwendet, keine Zuordnung allein über gleich klingende Namen.
+Assistent: konkrete Projektauswahl empfohlen; beim Gesamtüberblick globale Kennzahlen plus höchstens acht passende bzw. dringliche Projekte. Keine automatische Personal- oder Prämienentscheidung.
+Nur lokale Installation aktualisiert. Kein Upload und keine Produktionsänderung.
+
+Sicherungen: .local-backup/backup-20261029-225742; CRM: ../messeassistent/crm/backups/crm-before-leadership-20261029.dump.
+Quellstand vor Änderung: crm-integration-backup/20261029-225738.
+Rollback: vorherigen Quellstand wiederherstellen und nur betroffene App-Container neu bauen. Neue Tabellen können zur Datenerhaltung bestehen bleiben. Datenbank-Backups nur nach gesonderter Prüfung zurückspielen, da dadurch zwischenzeitliche Nutzereingaben verloren gehen könnten. Docker-Volumes nicht löschen.
+Ergänzende UI-Prüfung 30.10.2026: Mit Maras echtem lokalen Leitungskonto getestet. Seitliches Chatfenster, mobile Breite, CRM-Fehleranzeige ohne veraltete Kennzahlen und weiterhin erreichbarer Onboarding-Bereich bestanden. Nachweis CRM-LEADERSHIP-UI-RESULTS.json. Keine zusätzliche KI-Anfrage bei dieser UI-Prüfung.

@@ -1,0 +1,316 @@
+{
+  "name": "WBS Employee Onboarding — Chat Trigger Demo",
+  "nodes": [
+    {
+      "parameters": {
+        "content": "## WBS Chat Trigger — demonstrator\n\nThis workflow fulfils the WBS requirement for an interactive Chat Trigger demo. It reuses the same architecture as the production webhook (one Coordinator AI Agent + two AI Agent Tools) but is driven by a chat conversation instead of the backend outbox.\n\n**How to use**\n1. Open the workflow in n8n and click \"Chat\" on the Chat Trigger node.\n2. Describe a new employee, e.g. `New employee: Tom Becker, Backend Developer in IT, starting 2026-11-03`.\n3. The Coordinator extracts the fields, invokes the Info Agent (which calls the backend's `/api/internal/departments`) and then the Welcome Agent, then returns a structured JSON reply.\n\n**No side effects**\n- Does NOT POST to `/api/internal/onboarding/result`.\n- Does NOT send email.\n- Only READ access to the backend's department registry.\n\n**Credentials required**\n- OpenAI (gpt-4o-mini)\n- Departments API Secret (Header Auth)\n- `BACKEND_BASE_URL` env var",
+        "height": 460,
+        "width": 500,
+        "color": 4
+      },
+      "id": "sticky-chat-overview",
+      "name": "Sticky: Chat Overview",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -900,
+        -220
+      ]
+    },
+    {
+      "parameters": {
+        "public": true,
+        "mode": "hostedChat",
+        "initialMessages": "Hi! Describe the new employee (name, role, department, start date) and I'll draft the onboarding plan.",
+        "options": {
+          "subtitle": "WBS Employee Onboarding — demonstrator (read-only).",
+          "title": "Onboarding Coordinator Demo"
+        }
+      },
+      "id": "chat-trigger",
+      "name": "Chat Trigger",
+      "type": "@n8n/n8n-nodes-langchain.chatTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        -300,
+        0
+      ],
+      "webhookId": "f43366f1-7c80-5b71-ae3f-1863f6fa8d2d"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.chatInput }}",
+        "options": {
+          "systemMessage": "You are the Onboarding Coordinator demo for WBS. From the user's free-text message, extract the employee facts: first_name, last_name, department (IT|Marketing|Sales from the backend), role (job title) and start_date (YYYY-MM-DD). If any required field is missing, ask one concise clarifying question and stop.\n\nOnce you have all four fields:\n1. Call the `onboarding_info` tool with the department. Use ONLY values it returns.\n2. Call the `welcome_announcement` tool with first_name, department, role and team_lead.\n3. Return a single final JSON object: { \"team_lead\": \"...\", \"necessary_accounts\": [\"...\"], \"welcome_message\": \"...\", \"is_demo\": true|false }. No markdown, no commentary.\n\nNever invent team leads or accounts. Never send email. Never grant permissions.",
+          "returnIntermediateSteps": true
+        }
+      },
+      "id": "chat-coordinator-agent",
+      "name": "Onboarding Coordinator (Chat)",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2.2,
+      "position": [
+        -20,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "id",
+          "value": "={{ $env.OPENAI_MODEL || 'gpt-4o-mini' }}"
+        },
+        "options": {
+          "temperature": 0.1,
+          "maxTokens": 800
+        }
+      },
+      "id": "chat-coordinator-model",
+      "name": "Coordinator Model (OpenAI)",
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        -100,
+        240
+      ],
+      "credentials": {
+        "openAiApi": {
+          "id": "REPLACE_OPENAI_CREDENTIAL_ID",
+          "name": "OpenAI (configure in n8n)"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "text": "=Return the department facts for `{{ $fromAI('department', 'department name', 'string') }}`.\n\n1. Call the `departments_api` HTTP tool.\n2. Case-insensitive match on `name`.\n3. Respond with only: { \"team_lead\": \"...\", \"necessary_accounts\": [\"...\"], \"is_demo\": true|false }.\n4. If missing: { \"error\": \"DEPARTMENT_UNKNOWN\" }.",
+        "options": {
+          "systemMessage": "You are a read-only department lookup. Use the `departments_api` HTTP tool. Never fabricate department facts. Return a JSON object only."
+        },
+        "toolDescription": "Authoritative department facts lookup. Input: JSON { department: string }. Output: JSON { team_lead, necessary_accounts, is_demo } or { error }.",
+        "hasOutputParser": false
+      },
+      "id": "chat-info-agent",
+      "name": "onboarding_info",
+      "type": "@n8n/n8n-nodes-langchain.agentTool",
+      "typeVersion": 2.2,
+      "position": [
+        240,
+        240
+      ]
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "id",
+          "value": "={{ $env.OPENAI_MODEL || 'gpt-4o-mini' }}"
+        },
+        "options": {
+          "temperature": 0,
+          "maxTokens": 400
+        }
+      },
+      "id": "chat-info-model",
+      "name": "Info Agent Model (OpenAI)",
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        240,
+        460
+      ],
+      "credentials": {
+        "openAiApi": {
+          "id": "REPLACE_OPENAI_CREDENTIAL_ID",
+          "name": "OpenAI (configure in n8n)"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "={{ $env.BACKEND_BASE_URL }}/api/internal/departments",
+        "authentication": "genericCredentialType",
+        "sendHeaders": true,
+        "parametersHeaders": {
+          "values": [
+            {
+              "name": "Accept",
+              "value": "application/json",
+              "valueProvider": "fieldValue"
+            }
+          ]
+        },
+        "optimizeResponse": false,
+        "toolDescription": "GET the backend department registry.",
+        "genericAuthType": "httpHeaderAuth"
+      },
+      "id": "chat-departments-tool",
+      "name": "departments_api",
+      "type": "@n8n/n8n-nodes-langchain.toolHttpRequest",
+      "typeVersion": 1.1,
+      "position": [
+        460,
+        460
+      ],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "REPLACE_DEPARTMENTS_CREDENTIAL_ID",
+          "name": "Departments API Secret (Header Auth)"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "text": "=Write a warm, professional German welcome message. Facts:\n- first_name: {{ $fromAI('first_name', 'given name', 'string') }}\n- department: {{ $fromAI('department', 'department', 'string') }}\n- role: {{ $fromAI('role', 'job title', 'string') }}\n- team_lead: {{ $fromAI('team_lead', 'team lead name', 'string') }}\n\n2–4 short sentences, 200–600 characters, German, no HTML/markdown/emoji. Return ONLY { \"welcome_message\": \"...\" }.",
+        "options": {
+          "systemMessage": "Draft a short German welcome message. Output JSON only. Do not send email."
+        },
+        "toolDescription": "Draft a short German welcome message. Inputs: first_name, department, role, team_lead. Output: { welcome_message }.",
+        "hasOutputParser": false
+      },
+      "id": "chat-welcome-agent",
+      "name": "welcome_announcement",
+      "type": "@n8n/n8n-nodes-langchain.agentTool",
+      "typeVersion": 2.2,
+      "position": [
+        240,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "id",
+          "value": "={{ $env.OPENAI_MODEL || 'gpt-4o-mini' }}"
+        },
+        "options": {
+          "temperature": 0.4,
+          "maxTokens": 400
+        }
+      },
+      "id": "chat-welcome-model",
+      "name": "Welcome Agent Model (OpenAI)",
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        240,
+        -220
+      ],
+      "credentials": {
+        "openAiApi": {
+          "id": "REPLACE_OPENAI_CREDENTIAL_ID",
+          "name": "OpenAI (configure in n8n)"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": "## Try these prompts\n\n- `New employee: Tom Becker, Backend Developer in IT, starts 2026-11-03`\n- `Anna Weber joins Marketing on 2026-12-01 as Content Lead`\n- `We hired Michael Braun for Sales (Account Executive) from 2026-11-10`\n\nThe Coordinator will reject unknown departments via the Info Agent (`DEPARTMENT_UNKNOWN`) rather than inventing a team lead.",
+        "height": 280,
+        "width": 460,
+        "color": 5
+      },
+      "id": "sticky-prompts",
+      "name": "Sticky: Try these",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -900,
+        280
+      ]
+    }
+  ],
+  "connections": {
+    "Chat Trigger": {
+      "main": [
+        [
+          {
+            "node": "Onboarding Coordinator (Chat)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Coordinator Model (OpenAI)": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Onboarding Coordinator (Chat)",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Info Agent Model (OpenAI)": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "onboarding_info",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Welcome Agent Model (OpenAI)": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "welcome_announcement",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "departments_api": {
+      "ai_tool": [
+        [
+          {
+            "node": "onboarding_info",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "onboarding_info": {
+      "ai_tool": [
+        [
+          {
+            "node": "Onboarding Coordinator (Chat)",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "welcome_announcement": {
+      "ai_tool": [
+        [
+          {
+            "node": "Onboarding Coordinator (Chat)",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "saveManualExecutions": false,
+    "saveDataSuccessExecution": "none",
+    "saveDataErrorExecution": "none"
+  },
+  "pinData": {},
+  "meta": {
+    "templateCredsSetupCompleted": false
+  },
+  "active": false
+}

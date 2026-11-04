@@ -1,0 +1,42 @@
+name: wbs-employee-onboarding
+services:
+  db:
+    image: postgres:17-bookworm
+    environment:
+      POSTGRES_DB: onboarding
+      POSTGRES_USER: onboarding
+      POSTGRES_PASSWORD: onboarding_local_only
+    ports: ["127.0.0.1:54329:5432"]
+    volumes: ["onboarding_db:/var/lib/postgresql/data"]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U onboarding -d onboarding"]
+      interval: 3s
+      timeout: 3s
+      retries: 20
+  mailpit:
+    image: axllent/mailpit:v1.27
+    ports: ["127.0.0.1:1025:1025", "127.0.0.1:8025:8025"]
+  api:
+    build:
+      context: ..
+      dockerfile: backend/Dockerfile
+    environment:
+      NODE_ENV: development
+      DATABASE_URL: postgresql://onboarding:onboarding_local_only@db:5432/onboarding
+      APP_ORIGIN: ${APP_ORIGIN:-http://localhost:5173}
+      INTERNAL_API_SECRET: ${INTERNAL_API_SECRET:?Set INTERNAL_API_SECRET in backend/.env}
+      DEPARTMENTS_API_SECRET: ${DEPARTMENTS_API_SECRET:-}
+      SMTP_MODE: ${SMTP_MODE:-disabled}
+      SMTP_HOST: mailpit
+      SMTP_PORT: 1025
+      SMTP_FROM: onboarding@example.invalid
+      N8N_ONBOARDING_WEBHOOK_URL: ${N8N_ONBOARDING_WEBHOOK_URL:-}
+      N8N_ONBOARDING_WEBHOOK_SECRET: ${N8N_ONBOARDING_WEBHOOK_SECRET:-}
+    ports: ["127.0.0.1:${API_PORT:-3001}:3001"]
+    depends_on:
+      db:
+        condition: service_healthy
+      mailpit:
+        condition: service_started
+volumes:
+  onboarding_db:

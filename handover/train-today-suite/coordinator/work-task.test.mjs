@@ -1,0 +1,4 @@
+import {test} from 'node:test';import assert from 'node:assert/strict';import {ownsWorkTask,validateAction} from './task-actions.mjs';
+const c={hrEmployeeId:'mia'},t={id:'G30',category:'business',assigneeEmployeeId:'mia'};
+test('nur eigene explizit zugewiesene Bereichsaufgaben bearbeitbar',()=>{assert.equal(ownsWorkTask(c,t,'mia'),true);assert.equal(ownsWorkTask(c,t,'laura'),false);assert.equal(ownsWorkTask(c,{...t,assigneeEmployeeId:'laura'},'mia'),false);assert.equal(ownsWorkTask(c,{...t,id:'G02'},'mia'),false);assert.equal(ownsWorkTask(c,{...t,category:undefined},'mia'),false);});
+test('Abschluss braucht Auftrag, Ergebnis und Bestätigung',()=>{assert.throws(()=>validateAction(t,{state:'done',actionData:{brief:'Auftrag',result:'',checked:false}}));assert.doesNotThrow(()=>validateAction(t,{state:'done',actionData:{brief:'Auftrag',result:'Ergebnis geprüft',checked:true}}));});

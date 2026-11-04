@@ -1,0 +1,100 @@
+[
+  {
+    "file": "workflow-exports/wbsOnboardingLocal.json",
+    "name": "WBS Onboarding - Mitarbeiteraufnahme",
+    "id": "wbsOnboardingLocal",
+    "source": "fresh local export",
+    "active": false
+  },
+  {
+    "file": "workflow-exports/wbsOnboardingChatLocal.json",
+    "name": "WBS Onboarding - Chat-Assistent",
+    "id": "wbsOnboardingChatLocal",
+    "source": "fresh local export",
+    "active": false
+  },
+  {
+    "file": "workflow-exports/wbsOnboardingConnectivity.json",
+    "name": "WBS Onboarding — connectivity only",
+    "id": "wbsOnboardingConnectivity",
+    "source": "fresh local export",
+    "active": false
+  },
+  {
+    "file": "workflow-exports/iR52oRyEoMWakIj9.json",
+    "name": "Train Today | 01 Onboarding vorbereiten",
+    "id": "iR52oRyEoMWakIj9",
+    "source": "fresh local export",
+    "active": false
+  },
+  {
+    "file": "workflow-exports/V4fgFJOFdFtqYUjA.json",
+    "name": "Train Today | 02 HR-Entscheidung",
+    "id": "V4fgFJOFdFtqYUjA",
+    "source": "fresh local export",
+    "active": false
+  },
+  {
+    "file": "crm/workflows/01-CRM-WF-A-Lead-Capture.json",
+    "name": "CRM — Trade Fair Assistant — WF-A Lead Capture",
+    "id": "trainTodayCrm01",
+    "source": "local source export",
+    "active": false
+  },
+  {
+    "file": "crm/workflows/02-CRM-WF-B-Lead-Processing.json",
+    "name": "CRM — Trade Fair Assistant — WF-B Lead Processing",
+    "id": "trainTodayCrm02",
+    "source": "local source export",
+    "active": false
+  },
+  {
+    "file": "crm/workflows/03-CRM-Lead-Status.json",
+    "name": "CRM — Trade Fair Assistant — Lead Status",
+    "id": "trainTodayCrm03",
+    "source": "local source export",
+    "active": false
+  },
+  {
+    "file": "crm/workflows/04-CRM-Sales-Email-Delivery.json",
+    "name": "CRM — Trade Fair Assistant — Sales Email Delivery",
+    "id": "trainTodayCrm04",
+    "source": "local source export",
+    "active": false
+  },
+  {
+    "file": "crm/workflows/05-CRM-dispatch.json",
+    "name": "CRM — Übertragung an Sergiis Kern",
+    "id": "trainTodayCrm05",
+    "source": "local source export",
+    "active": false
+  },
+  {
+    "file": "crm/workflows/06-CRM-sync.json",
+    "name": "CRM — Verarbeitungsstatus synchronisieren",
+    "id": "trainTodayCrm06",
+    "source": "local source export",
+    "active": false
+  },
+  {
+    "file": "crm/workflows/07-CRM-reminders.json",
+    "name": "CRM — Fällige Aufgaben prüfen",
+    "id": "trainTodayCrm07",
+    "source": "local source export",
+    "active": false
+  },
+  {
+    "file": "crm/workflows/08-CRM-assistant.json",
+    "name": "CRM — Lesender Assistent",
+    "id": "trainTodayCrm08",
+    "source": "local source export",
+    "active": false
+  },
+  {
+    "file": "crm/workflows/09-CRM-extract.json",
+    "name": "CRM — Notiz und Visitenkarte prüfen",
+    "id": "trainTodayCrm09",
+    "source": "local source export",
+    "active": false
+  }
+]

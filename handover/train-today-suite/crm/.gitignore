@@ -1,0 +1,11 @@
+.env
+sql/002-local-passwords.sql
+sql/008-local-authority.sql
+LOKALE-ZUGAENGE.txt
+node_modules/
+*.tgz
+test-results.json
+.local-n8n.json
+local-n8n-result.json
+
+backups/

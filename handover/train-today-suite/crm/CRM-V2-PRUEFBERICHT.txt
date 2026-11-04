@@ -1,0 +1,72 @@
+TRAIN TODAY CRM V2 – PRÜFBERICHT
+24.10.2026, lokale Docker-Testumgebung
+
+ERGEBNIS
+31 neue API-/Datenbankprüfungen bestanden.
+43 bestehende Integrations- und Berechtigungsprüfungen bestanden.
+Gesamt: 74 bestanden, 0 fehlgeschlagen im abschließenden Testlauf.
+
+Ein erster Durchlauf deckte eine zu enge Leseregel beim Anlegen einer neuen
+Verkaufschance durch Berater auf. Sie wurde korrigiert: eigene neue Datensätze
+sind sofort sichtbar, fremde Projekte bleiben gesperrt. Danach liefen alle
+Prüfungen erfolgreich durch. Es wurden keine Rechte auf fremde Projekte erweitert.
+
+NEUE PRÜFUNGEN
+Authentifizierung und Datensatzrechte der API; Pagination und Zeitfilter;
+Stammdaten und Prognosefelder; Grenzen der Abschlusswahrscheinlichkeit;
+Einwilligungsnachweise; private Ansichten; Schutz fremder Servicefälle;
+Lösungsvermerk bei Abschluss; Projektbeteiligung für Zuständigkeit;
+Terminintervalle; sichere Protokolle für Dokumentlinks;
+Vorlagen nur durch Leitung; datierte und idempotente Aufgabenanlage;
+serverseitige Angebotsrechnung mit unterschiedlichen Steuersätzen;
+eindeutige Angebotsnummern; Rabattprüfung; Schutz ausgegebener Angebotssummen;
+Angebotsrevision; angenommene Angebote und Leitungsrolle als Voraussetzung
+für Aufträge; keine doppelte Übernahme; Zahlung nach Übernahme gleich null;
+Kampagnenrechte; Einwilligung und Sperren auch bei doppelter E-Mail-Adresse;
+unverändert lesender Agent und nachvollziehbare Audit-Einträge.
+Einzelergebnisse: workspace-test-results.json.
+
+BESTEHENDE FUNKTIONEN
+Alle 43 bisherigen Prüfungen bestehen weiterhin, darunter Multi-Projekt-
+Gesprächserfassung, stabile Anfrage-IDs, Versionskonflikte, Originalnotizen,
+bestätigte Übergaben, Beitragszuordnung, Prämien auf Teilzahlungen,
+unveränderliche Freigaben, Erstattungskorrekturen, Zusammenführung und
+Rücknahme, Sitzungssperren sowie Schutz vor gefälschter Agentenidentität.
+Einzelergebnisse: test-results.json.
+
+OBERFLÄCHENPRÜFUNG
+Persönliche Anmeldung mit vorhandenem lokalem Leitungszugang.
+Desktop bei 1280 x 900; mobile Ansicht bei 390 x 844 und Menübedienung.
+Kein seitlicher Seitenüberlauf auf der mobilen Übersichtsseite.
+Unternehmenssuche und Kundenakte mit verknüpften Angeboten/Dokumentlinks.
+Angebotsposition im Browser verändert und gespeichert:
+  2.800,00 EUR netto + 520,00 EUR Umsatzsteuer = 3.320,00 EUR brutto.
+Chancenfilter, Board, gespeicherte Ansicht und Wiederherstellung geprüft.
+Monatsprognose: 10.000 EUR bei 60 Prozent ergibt 6.000 EUR gewichtet.
+Servicefall und Lösungsstatus sichtbar; Termin und fällige Aufgaben im Kalender.
+Kampagnenvorschau: gesperrte doppelte E-Mail-Adresse ergibt null Empfänger.
+Alle Navigationsbereiche geöffnet, einschließlich bestehender Prämien,
+Aktivitäten, Messeerfassung, Assistent und Einstellungen.
+Keine Anwendungsfehler in den beobachteten Browserprotokollen. Meldungen einer
+installierten MetaMask-Browsererweiterung sind nicht Teil des CRM.
+
+ERHALT UND BEREINIGUNG
+Vier Original-Workflowdateien unverändert (Hash-Abgleich).
+Kernparameter und Verbindungen der vier CRM-Kopien unverändert.
+16 Code-Knoten und der gesamte eingebettete HTML-JavaScript-Code syntaktisch geprüft.
+Sergiis trade_fair-Schema wurde durch die Erweiterung nicht verändert.
+Vorab: Datenbank-Dump und sichere Kopie des vorherigen Quellpakets erstellt.
+Nur anhand der drei Testlauf-Berichte identifizierte QA-Datensätze bereinigt.
+Die vorhandenen 40 Gesprächsnotizen und 40 Projektakten bleiben erhalten.
+Bestand danach: 29 Firmen (einschließlich 14 vorhandener Platzhalter),
+38 Kontakte, 40 Gespräche, 40 Projekte, 40 Aufgaben, eine Messe, ein Auftrag,
+eine Prämienregel, drei Leistungen sowie drei neue Standard-Aufgabenvorlagen.
+Die technische Kern-Datenbank kann weiterhin abgeschlossene fiktive QA-Leads
+enthalten; es erfolgte kein externer Kundenversand.
+
+NICHT GEPRÜFT / NICHT EINGERICHTET
+Kein externer CRM-Anbieter, keine Neon-Verbindung, kein echter E-Mail-Versand,
+keine Outlook-/Google-Synchronisation. PDF-Ausgabe nutzt den Browserdruck;
+kein steuerlich geprüftes Rechnungsformat. Die neue Anbieteranbindung folgt
+separat. Die Bereitstellung auf einem zweiten Rechner wurde nicht getestet;
+die bekannte Verfügbarkeit des speziellen n8n-Images bleibt zu klären.

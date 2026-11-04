@@ -1,0 +1,110 @@
+TRAIN TODAY CRM – KUNDENPROJEKTE UND ZEITERFASSUNG
+Stand: 25.10.2026
+
+SO FINDEST DU DIE NEUEN FUNKTIONEN
+http://localhost:3080 öffnen und mit leitung anmelden.
+Links unter Projektdurchführung: Kundenprojekte und Zeiterfassung.
+Die bisherigen persönlichen Zugangsdaten gelten weiter.
+
+KUNDENPROJEKTE
+Die Übersicht umfasst alle zugänglichen Kundenprojekte, auch solche ohne Plan.
+Mit dem Filter „Mit Projektplan“ siehst du die 21 vorbereiteten Projektpläne.
+Zeitleiste: zwölf Wochen, um jeweils sechs Wochen verschiebbar. Breite Tabellen
+und Zeitachsen lassen sich bei kleinen Fenstern seitlich scrollen.
+Tabelle: Kunde, Projekt, Verantwortliche, Fortschritt, Zeitraum, Planstunden,
+erfasster Aufwand, geplanter Rest, Hinweise und letzter Projektkommentar.
+Filter: Kunde, Berater, Status und Textsuche. Die Kennzahlen folgen den Filtern.
+„Übersicht als CSV“ exportiert die gefilterte Liste.
+
+Ein Projekt öffnen, um Ziel, Arbeitspakete, Zuständigkeiten, Beiträge der
+Berater, Kommentare und Zeitbuchungen zusammen zu sehen.
+Projektverantwortliche und Leitung dürfen planen. Beteiligte dürfen den
+Fortschritt ihrer zugewiesenen Arbeitspakete und Blockierungsgründe pflegen.
+Weitere Personen über die bestehende Projektbeteiligung in der Kundenakte
+zuordnen. Die Zuordnung wird nicht automatisch durch eine Zeitbuchung geändert.
+
+Fortschritt ist nach Planstunden gewichtet:
+10 Stunden zu 100 % und 30 Stunden zu 50 % ergeben 62,5 % Projektfortschritt.
+„Geplanter Rest“ sind die noch nicht erledigten Anteile der Planstunden;
+das ist keine automatische Schätzung des tatsächlich nötigen Restaufwands.
+Ein Stundenanteil von 40 % bedeutet, dass die Person 40 % der erfassten
+Projektstunden gebucht hat. Das ist weder der Projektfortschritt noch ein
+automatischer Qualitäts- oder Prämienwert. Bestehende Prämienregeln bleiben separat.
+
+Arbeitspakete können einen Vorgänger haben. Kreise und projektfremde Vorgänger
+werden abgewiesen. Eine unerledigte Abhängigkeit wird ab dem geplanten Beginn
+als Blockierung angezeigt; zukünftige Abhängigkeiten sind noch kein Problem.
+Die Zeitleiste verschiebt Termine nicht automatisch. Es gibt noch keine
+Berechnung kritischer Pfade, Meilensteinplanung oder automatische Kapazitätsglättung.
+Abschluss ist erst möglich, wenn alle aktiven Arbeitspakete erledigt sind.
+
+ZEITERFASSUNG
+Eigene Zeiten manuell mit Beginn, Ende, Pause, Tätigkeit und optionalem
+Arbeitspaket erfassen; alternativ eine gespeicherte Stoppuhr starten/stoppen.
+Eine Stoppuhr läuft auch nach Abmeldung weiter. Nach neuer Anmeldung lässt sie
+sich stoppen. Bei vergessenem Stoppen kann der Endzeitpunkt korrigiert werden.
+Eine Buchung umfasst höchstens 24 Stunden; längere Arbeit auf mehrere Buchungen
+verteilen. Es ist nur eine laufende Stoppuhr pro Person möglich.
+Überschneidungen derselben Person werden projektübergreifend verhindert.
+Pausen werden abgezogen; Dauer auf volle Minuten aufgerundet. Die Anzeige rundet
+Stunden auf bis zu zwei Nachkommastellen, der CSV-Export enthält die genauen Minuten.
+
+Offen -> Einreichen -> Leitung prüft -> Freigeben oder Zurückweisen.
+Offene/zurückgewiesene Buchungen können mit Begründung korrigiert oder storniert
+werden. Eingereichte eigene Buchungen können vor der Entscheidung zurückgenommen
+werden. Niemand darf eigene Zeiten selbst freigeben. Freigegebene Nachweise
+sind unveränderlich; ein gesonderter Korrekturprozess dafür ist noch nicht enthalten.
+Projekte mit freigegebenen Zeitnachweisen können nicht zusammengeführt werden.
+
+Die Stundenübersicht startet mit dem laufenden Monat. Für frühere Buchungen
+„Von“ zurücksetzen. Es gibt Filter nach Person, Projekt, Zeitraum und Status.
+„Zur Freigabe“ zeigt die prüfbaren Nachweise; „Freigabe prüfen“ öffnet den Dialog.
+Laufende/stornierte Zeiten zählen nicht in Summen. Offene, eingereichte und
+zurückgewiesene Zeiten zählen als erfasster Aufwand; freigegebene Stunden werden
+zusätzlich getrennt ausgewiesen. „Abrechenbar“ erstellt noch keine Rechnung.
+
+BEISPIELE ZUM AUSPROBIEREN
+Bechtle – KI-Werkstatt für interne Multiplikatoren:
+  Dora und Eva arbeiten gemeinsam; unterschiedliche Fortschritte und Stundenanteile.
+Bechtle – Führen ohne Weisungsbefugnis:
+  Termin überschritten, mehr Stunden als geplant, fehlende Rückmeldung.
+Viessmann – Zusammenarbeit im Serviceverbund und ZEISS – Präsentieren im Projekt:
+  Pausierte Vorhaben mit konkret benannten offenen Freigaben.
+Bosch – Führung im Schichtbetrieb:
+  Abgeschlossener Projektplan und freigegebene Leistungsnachweise.
+Weitere Projekte haben noch keinen Plan und lassen sich selbst vervollständigen.
+
+EINGERICHTETER BESTAND
+21 Projektpläne, 84 Arbeitspakete, 107 fachliche Zeitbuchungen,
+44 Projektkommentare, 1.178 Planstunden und 363 erfasste Stunden.
+25 Buchungen warten auf Freigabe; drei liegen vor dem aktuellen Monatsfilter.
+Die Daten sind weiterhin lokal erzeugte Beispieldaten zu realen Firmennamen.
+Sie belegen keine tatsächlichen Geschäftsbeziehungen oder Mitarbeiterleistungen.
+Diese Kennzeichnung steht in der Dokumentation, nicht auf den CRM-Kärtchen.
+Ein zusätzlicher stornierter Zeiteintrag dokumentiert die Browser-Bedienprüfung.
+
+PRÜFUNG UND BETRIEB
+112 automatische Funktionsprüfungen in einer getrennten Datenbankkopie:
+43 bisherige Kernfälle, 31 CRM-Erweiterungen, 38 Projekt- und Zeitfälle.
+Weitere 18 Prüfungen des vorhandenen Kundenbestands erfolgreich.
+Abgedeckt: Anmeldung, Rollen, Angebote, Zahlungen, Prämien, Übergaben,
+Kalender, Aufgaben, Dubletten, API, Fortschrittsrechnung, Abhängigkeiten,
+Zeitüberschneidungen, gleichzeitige Buchungen, Freigaben und unveränderliche Historie.
+Originale vier Workflows und Sergiis Algorithmen sind unverändert.
+Die Umsatzprognose bleibt 419.800 EUR offen / 266.935 EUR gewichtet.
+Ein bereits vorhandener zusätzlicher Prämienentwurf des Benutzers bleibt erhalten.
+Die wiederholte Einrichtung der Projektpläne verändert bestehende Bearbeitungen nicht.
+
+Start-CRM.ps1 startet lokal und spielt die Erweiterungen 013/014 ein.
+Testdaten-laden.ps1 ergänzt bei einer neuen Einrichtung auch die Projektpläne.
+Vorherige Sicherung: backups/crm-20261025-090857.dump (privat, nicht im ZIP).
+Die isolierte Prüfkopie heißt crm_regression_20261025; sie wird nicht im CRM verwendet.
+Kein Neon, keine externen CRM-Accounts, keine echten E-Mails oder Auszahlungen.
+
+IDEEN AUS ANDEREN PROGRAMMEN
+Microsoft Planner Premium: Zeitachse, Abhängigkeiten und Verantwortlichkeiten.
+https://support.microsoft.com/en-gb/planner/teams/advanced-capabilities-with-premium-plans-in-planner
+weclapp: Arbeitspakete, Plan-/Istaufwand, Projektkommentare und Zeiterfassung.
+https://www.weclapp.com/de/projektmanagement-software/
+Die Prinzipien sind auf unser CRM übertragen. Es ist keine Integration mit
+Microsoft oder weclapp und kein vollständiger Ersatz für deren Projektplanung.

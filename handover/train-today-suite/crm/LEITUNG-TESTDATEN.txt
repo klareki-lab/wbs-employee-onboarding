@@ -1,0 +1,137 @@
+TRAIN TODAY CRM · TESTBESTAND FÜR DIE LEITUNG
+Eingerichtet am 24.10.2026, ausschließlich lokal in Docker/PostgreSQL.
+
+ÖFFNEN
+http://localhost:3080
+Benutzer: leitung (Mara Winter, Geschäftsführung).
+Das persönliche Passwort steht in LOKALE-ZUGAENGE.txt im CRM-Ordner.
+Bei einer bereits offenen alten Seite neu laden und erneut anmelden.
+
+UMFANG
+21 reale Firmennamen mit fiktiven Kundenstammdaten; zusätzlich bleiben
+14 alte Importplatzhalter als Prüfspur erhalten. Über den Filter der
+Unternehmensliste können auch diese alten Einträge angezeigt werden.
+52 Kontakte, 53 Verkaufschancen, 40 unveränderte Originalgesprächsnotizen,
+169 Aktivitäten, 127 Aufgaben (79 davon beim Einrichten offen),
+25 Termine, 24 Angebote, 10 Aufträge, 10 Servicefälle, 6 Trainertermine,
+15 Dokumentlinks und 10 Prämienfälle. Fünf fiktive Berater sind beteiligt.
+Deine vorherige Kampagne und bereits bearbeiteten Aufgaben wurden erhalten.
+
+Alle Personen, Kontaktdaten, Firmenbeziehungen, Budgets, Adressen, Größen,
+Aufträge, Zahlungen und Einwilligungen sind fiktiv. Die Namen der Firmen
+sind real; dieser Bestand enthält keine verifizierte Unternehmensrecherche.
+Die zusätzliche Vergangenheit ist ausdrücklich ein simulierter Verlauf.
+
+UMSATZPROGNOSE
+Menü > Umsatzprognose:
+20 ausreichend bewertete offene Chancen: 419.800 EUR netto.
+Gewichtet mit der jeweiligen Wahrscheinlichkeit: 266.935 EUR netto.
+Als verbindliche Prognose eingestuft: 118.900 EUR netto.
+
+Abschlussmonat   Chancen   Chancenwert netto   Gewichtet netto
+November 2026       11        230.200 EUR         164.395 EUR
+Dezember 2026        8        159.600 EUR          92.040 EUR
+Januar 2027          1         30.000 EUR          10.500 EUR
+
+Diese Werte sind erwartete Abschlüsse, keine Buchungs- oder Zahlungsprognose.
+Gewonnene/verlorene, pausierte und ausgeschlossene Chancen zählen nicht mit.
+Im Bereich Team & Vertrieb stehen separat 167.000 EUR simulierte Zahlungen
+nach Erstattungen, ohne stornierte Aufträge. Werte ändern sich durch Tests.
+
+DREI BEWUSST OFFENE PROGNOSEFÄLLE
+- DATEV / Change-Begleiter qualifizieren: Abschlussdatum fehlt.
+- ZEISS / Global Collaboration Lab: Betrag in USD noch nicht in EUR bewertet.
+- TRUMPF / Train-the-Trainer im Service: Chancenwert muss geklärt werden.
+Zum Test eine Chance öffnen, Wert/Wahrscheinlichkeit/Abschlussdatum ändern
+und danach die Monatswerte in Umsatzprognose vergleichen.
+
+LEITUNGSFUNKTIONEN TESTEN
+1. Aktivitäten & Aufgaben: Im Zuständigkeitsfilter
+   „Meine Aufgaben · Mara Winter“ auswählen. Acht konkrete Aufgaben liegen vor.
+   Darunter Preisfreigabe, Zuständigkeitsklärung und Prüfung von Prämien.
+
+2. Übergaben: Oben stehen Anfragen zu
+   „Führen ohne Weisungsbefugnis“ (Bechtle) und
+   „Moderation hybrider Arbeitsgruppen“ (DATEV) an die Leitung.
+   „Prüfen“ öffnen und eine Anfrage annehmen oder ablehnen.
+   Zusätzlich gibt es eine offene Beraterübergabe sowie angenommene und
+   abgelehnte Beispiele im Bestand.
+
+3. Prämien: „Virtuelle Projektteams begleiten“ (Siemens, H-02)
+   hat 18.000 EUR Teilzahlung bei 36.000 EUR Auftragswert.
+   Der gültige Entwurf kann geprüft und mit Begründung freigegeben werden.
+   „Projektleitung kompakt“ (Festo, H-07) ist vollständig bezahlt.
+
+4. Negative Korrektur: „Lernbegleiter im Betrieb“ (Deutsche Bahn, H-04).
+   Nach einer früheren Freigabe wurden 5.600 EUR erstattet.
+   Der neue Entwurf enthält zusammen -200 EUR Prämienkorrektur.
+   Der vorher freigegebene Datensatz bleibt unverändert.
+
+5. Veraltete Grundlage: „KI-Werkstatt für interne Multiplikatoren“
+   (Bechtle, H-09). Ein Entwurf heißt „Veraltet …“, der zweite
+   „Aktuelle Teilzahlung …“. Inzwischen sind 10.000 statt 7.500 EUR bezahlt.
+   Der alte Entwurf darf nicht freigegeben werden; die Anwendung weist ihn ab.
+   Der neue Entwurf ist prüfbar. Kein Entwurf löst eine echte Zahlung aus.
+
+6. Team & Vertrieb: Gespräche, erledigte Aufgaben, Beteiligungen,
+   Zahlungsstände und Verlustgründe vergleichen. Historische Testkohorten
+   beim Einrichten: 30 Tage 2/12, 60 Tage 3/8, 90 Tage 3/5 gewonnen.
+   Die Gruppen haben unterschiedliche Beobachtungszeiten und Nenner.
+
+7. Kalender: Vergangene, durchgeführte, abgesagte und zukünftige Termine.
+   Zwei Optionen für dieselbe zuständige Person überschneiden sich am
+   26.10.2026: „Führen ohne Weisungsbefugnis“ und
+   „Zweite Terminoption · internen Konflikt prüfen“.
+   Termin bearbeiten oder als ICS exportieren. Es wird keine Einladung gesendet.
+
+8. Unternehmen: Eine Kundenakte öffnen und die Reiter Kontakte,
+   Verkaufschancen, Aktivitäten, Angebote & Dokumente sowie Service prüfen.
+   Die 15 Dokumentlinks führen zu vier lokal mitgelieferten Übungsunterlagen.
+
+9. Kundenservice: Offene, laufende, wartende, gelöste und geschlossene Fälle.
+   Beispiel: Rechnungsempfänger bei Festo prüfen, Ersatztermin bei Siemens,
+   Untertitelanforderung bei Ottobock. Beim Abschluss eine Lösung dokumentieren.
+
+10. Kampagnen: „Demo · Impulse für Bestandskunden“ öffnen.
+    Die Empfängervorschau enthält sechs fiktive Kontakte mit dokumentiertem
+    Test-Opt-in. Unbekannte Einwilligungen, Abmeldungen und Sperren werden
+    ausgeschlossen. Vorschau und CSV sind möglich; kein Versand.
+
+ABSICHTLICHE DATENPROBLEME
+Doppelte Gespräche, abweichende Budgets, alte Projektstände, unbekannte
+Nachnamen, fehlende E-Mail-Adressen, gemeinsame Team-Mailboxen, fehlende
+Termine und unbestätigte Zuständigkeiten bleiben erkennbar.
+Doppelaufnahmen sind pausiert und von der Prognose ausgeschlossen, damit
+die Prüfung und spätere Zusammenführung von dir getestet werden kann.
+Beispielpaare: UC-01/02, UC-06/07, UC-21/22, UC-29/30, UC-39/40.
+UC-27 enthält zwei getrennte Bedarfe; diese sind als zwei Chancen angelegt.
+Die Originalnotizen wurden weder umgeschrieben noch automatisch verschickt.
+
+AUF EINEM ANDEREN PC
+Das sichere CRM-Paket-mit-Testdaten.zip enthält die Anwendung und die
+Rezepte zum Erzeugen der Testdaten, keine Passwörter oder Docker-Volumes.
+1. In eigenen Ordner entpacken, Docker Desktop starten.
+2. Start-CRM.ps1 ausführen (Voraussetzungen wie in ANLEITUNG.txt).
+3. Testdaten-laden.ps1 ausführen.
+4. Neue lokale Zugangsdaten aus der dort erzeugten LOKALE-ZUGAENGE.txt nutzen.
+Die relativen Aufgaben-/Prognosetermine richten sich nach dem ersten Importtag.
+Original-Messebeispiele behalten ihre ausdrücklich genannten festen Termine.
+Die Einrichtung auf einem zweiten PC wurde noch nicht praktisch getestet.
+
+WIEDERHOLEN UND SICHERN
+Testdaten-laden.ps1 erstellt vorab eine lokale Sicherung.
+Bei bereits vollständig importiertem Bestand werden keine Daten zurückgesetzt.
+Ein unterbrochener Import kann fortgesetzt werden, ohne doppelte Datensätze.
+Für einen neuen unabhängigen Testlauf eine separate lokale Datenbank verwenden.
+Sicherung-CRM.ps1 sichert den aktuellen Stand einschließlich eigener Änderungen.
+Sicherungen enthalten auch Passwort-Hashes und gehören nicht ins Weitergabepaket.
+
+GEPRÜFT
+18 gezielte Prüfungen bestanden: Erhaltung deiner Daten und der Notizen,
+Prognosesummen und Ausschlüsse, Angebotsrechnung, Zahlungsfälle,
+Leitungsaufgaben, Prämiengrundlagen einschließlich Ablehnung des alten Entwurfs,
+Kalender, Historie, Dokumente, Kampagnen und Rollentrennung.
+Wiederholungsimport: identischer Datenbestand, keine Änderungen zurückgesetzt.
+Die vier ursprünglichen Workflow-Dateien und Sergiis Kernalgorithmen sind
+unverändert. Kein Zugriff auf Neon, kein echter Kundenversand.
+Detailberichte: leadership-demo-report.json und leadership-test-results.json.

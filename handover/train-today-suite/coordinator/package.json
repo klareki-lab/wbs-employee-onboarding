@@ -1,0 +1,1 @@
+{"name":"train-today-onboarding-coordinator","private":true,"type":"module","scripts":{"start":"node server.mjs","test":"node --test tests/*.test.mjs"},"dependencies":{"nodemailer":"10.3.1","pg":"8.16.3"}}

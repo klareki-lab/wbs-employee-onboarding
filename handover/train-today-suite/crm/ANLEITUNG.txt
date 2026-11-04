@@ -1,0 +1,222 @@
+PROJEKTPLANUNG UND ZEITERFASSUNG – 25.10.2026
+Neu unter Projektdurchführung: Kundenprojekte und Zeiterfassung.
+Bedienung, Beispiele und Prüfungen: CRM-PROJEKTE-ZEITEN.txt.
+Start-CRM.ps1 berücksichtigt jetzt auch Migration 014.
+
+CRM V2 – LOKALER AUSBAU VOM 24.10.2026
+Die Anwendung ist erweitert. Aktuelle Funktionsbeschreibung: CRM-V2-VERGLEICH.txt.
+Neue API: CRM-V2-API.txt. Aktueller Prüfbericht: CRM-V2-PRUEFBERICHT.txt.
+Start-CRM.ps1 spielt die additive Migration 013 automatisch ein.
+Die bisherigen Zugangsdaten funktionieren weiterhin. Keine Neon-Verbindung.
+
+TRAIN TODAY CRM – LOKALE ERWEITERUNG
+Stand: 24.10.2026
+
+SO KANNST DU LOSLEGEN
+
+1. CRM öffnen: http://localhost:3080
+2. Persönliche Testzugänge: LOKALE-ZUGAENGE.txt in diesem Ordner.
+   leitung = Geschäftsführung, anna/ben/cem/dora/eva = Beratung.
+3. Die gemeinsame Oberfläche liegt vollständig in CRM-Hub.html.
+   Sie lässt sich auch einzeln öffnen. Bei „Verbindung“ dann http://localhost:3080 wählen.
+   Für Anmeldung, gemeinsame Daten und Berechtigungen muss der lokale Dienst laufen.
+4. Docker-Neustart: Start-CRM.ps1 ausführen.
+   Anhalten ohne Datenverlust: Stop-CRM.ps1.
+   Datenbanksicherung: Sicherung-CRM.ps1.
+
+DEIN BISHERIGES SYSTEM
+
+Die vier Dateien in C:\Users\jurib\Desktop\N8N\messe-hub\workflows wurden NICHT verändert.
+Auch Sergiis Quellprojekt und die bestehende n8n-Instanz auf Port 5678 bleiben unverändert.
+Prüfsummen und erlaubte Unterschiede stehen in workflows/MANIFEST.json.
+
+Die Kopien 01–04 heißen CRM. Ihre fachlichen Code-Blöcke, SQL-Aufrufe, Verbindungen,
+Validierung, Bewertung und E-Mail-Logik sind identisch. Angepasst wurden nur Namen,
+Import-Identitäten, Credential-Verweise und die beiden Webhook-Pfade:
+  /webhook/crm/core/lead
+  /webhook/crm/core/status
+Die verteilbaren JSON-Dateien sind inaktiv und enthalten keine Zugangsschlüssel.
+
+Die fünf zusätzlichen Workflows:
+05 CRM dispatch   – dauerhaft gespeicherte Gespräche an WF-A übergeben
+06 CRM sync       – Verarbeitung und E-Mail-Status ins CRM zurückholen
+07 CRM reminders  – fällige Aufgaben ermitteln
+08 CRM assistant  – optionaler n8n-Zugang zum persönlich berechtigten Leseassistenten
+09 CRM extract    – optionaler n8n-Zugang für Notiz-/Visitenkartenvorschläge
+
+Die Oberfläche spricht den CRM-Dienst direkt an. Dieser setzt Identität, Rechte,
+Transaktionen und die Vertriebsregeln durch. n8n bleibt für den bestehenden Kern
+und die angebundenen Hintergrundabläufe zuständig. Geschäftsregeln werden nicht
+allein durch versteckte Schaltflächen im HTML geschützt.
+
+LOKALE DOCKER-UMGEBUNG
+
+Eigenes Compose-Projekt: train-today-crm
+  PostgreSQL:         localhost:55432, Datenbank crm
+  CRM-Dienst + HTML:  http://localhost:3080
+  Separate n8n-Instanz: http://localhost:5682
+  Lokale Testanbieter: nur im Docker-Netz erreichbar
+
+Die Daten bleiben in eigenen Docker-Volumes erhalten. „compose down -v“ würde
+diese Volumes löschen und ist deshalb nicht Teil des normalen Stopp-Skripts.
+Die laufende CRM-Umgebung ist absichtlich nur an 127.0.0.1 veröffentlicht.
+
+Die zusätzliche n8n-Instanz enthält alle neun Workflows. Ausschließlich dort
+verwenden die Kernkopien lokale Anbieter-Adressen und einen schnelleren Testtakt.
+Die fachlichen Kernalgorithmen bleiben auch in dieser Testkonfiguration gleich.
+Die Datei .local-n8n.json enthält den privaten lokalen n8n-Owner-Zugang und die
+IDs dieser Testinstallation. Sie gehört nicht in Git und nicht in ein Austauschpaket.
+
+WICHTIG: „completed“ und „delivered“ in dieser lokalen Testumgebung bedeuten:
+Die echte n8n-/PostgreSQL-Kette lief erfolgreich gegen lokale Testdienste.
+Es fand KEINE echte Internetrecherche, KEINE kostenpflichtige KI-Verarbeitung
+und KEIN echter E-Mail-Versand statt. Die Oberfläche kennzeichnet diesen Modus.
+Die Test-KI liefert bewusst keine erfundenen Firmenfakten.
+
+FUNKTIONEN FÜR BERATER
+
+- Persönliche Anmeldung; eigener Datenumfang nach Projektzuständigkeit/Beteiligung.
+- Mein Tag mit Aufgaben, Fälligkeiten, Übergaben und Übertragungsstatus.
+- Freie Notizen, optionale Strukturfelder, Messe und tatsächlicher Gesprächszeitpunkt.
+- Mehrere Vorhaben in einem Gespräch. Gemeinsame Beträge/Teilnehmerzahlen werden
+  nicht blind auf jedes Projekt kopiert; die Zuordnung muss geprüft werden.
+- Lokale Entwürfe und Übertragungswarteschlange mit stabiler Anfrage-ID.
+  Bei unbekanntem Sendeergebnis wird derselbe Vorgang wiederholt, kein neuer erzeugt.
+- Bestandsunternehmen und minimales Team-Projektverzeichnis als Dublettenhinweis.
+  Fremde Gesprächsnotizen, Kontaktdaten und Budgets bleiben geschützt.
+- Projektakten mit unveränderlichen Originalnotizen, Kontakten, Aufgaben und Verlauf.
+- Anrufversuch / Kontakt erreicht / nächster Schritt vereinbart separat dokumentieren.
+- Übergabe mit Annahme oder Ablehnung durch die angefragte Person.
+- Angebote, Follow-up-Textentwürfe und Kalenderdateien (.ics).
+- Leistungskatalog, Referenzlinks und manuell gepflegte Trainerverfügbarkeit.
+- Lesender Assistent: ohne API-Schlüssel lokale Bestandssuche;
+  mit AI_API_KEY freie Antworten auf Basis freigegebener Daten.
+- Eigene Passwortänderung; dabei werden alle bisherigen Sitzungen ungültig.
+
+Diktat verwendet die optionale Spracherkennung des Browsers. Die Verfügbarkeit
+hängt vom Browser und der Mikrofonfreigabe ab; die eigene Mitschrift diktieren.
+Visitenkartenlesen benötigt einen bildfähigen, eingerichteten KI-Dienst.
+Die Schaltfläche „Felder vorschlagen“ extrahiert ohne KI zumindest E-Mail-Adressen.
+Vorschläge werden erst nach Prüfung übernommen; erst „Gespräch speichern“ legt Daten an.
+Fotos werden nicht dauerhaft im CRM gespeichert.
+
+Offline bedeutet hier: Das bereits geöffnete Formular kann bei Verbindungsabbruch
+weiterarbeiten. Eine vollständige Erst-Anmeldung ohne Verbindung oder ein erstmals
+offline gestartetes Backend wird nicht vorgetäuscht. Entwürfe liegen unverschlüsselt
+im jeweiligen Browserprofil. Auf gemeinsam genutzten Geräten eigene Profile verwenden.
+
+FUNKTIONEN FÜR DIE GESCHÄFTSFÜHRUNG
+
+- Alle Projektakten, Vertriebsphasen, offene/überfällige Aufgaben und Verlustgründe.
+- Aufgaben-/Kontaktaktivitäten je Person getrennt von bestätigten Ergebnissen.
+- Messesicht mit Kosten, bestätigten Zahlungseingängen und Projektergebnissen.
+- Abschlussquote = gewonnen / (gewonnen + verloren).
+- 30-/60-/90-Tage-Kohorten anhand Messebeginn, ersatzweise Projektanlage.
+  Status am Stichtag aus dem vollständigen Änderungsverlauf; junge Fälle zählen nicht.
+- Bestätigte Aufträge, Kosten, Teilzahlungen, Erstattungen und Storno.
+- Eindeutige Auftragsnummern verhindern eine doppelte Erfassung derselben Nummer.
+- Projektzusammenführung mit Begründung, erhaltenen Originalgesprächen und Audit.
+  Trennung ist möglich, solange übertragene Daten/Beiträge danach nicht verändert wurden.
+  Akten mit freigegebenen Prämien bleiben für die Nachweisführung gesperrt.
+- Beiträge nach Erstkontakt, Qualifizierung, Abschluss und Unterstützung.
+  Mehrere Personen teilen einen Rollenanteil nach dokumentierten Gewichten.
+- Neue unveränderliche Regelversionen statt rückwirklichem Überschreiben.
+- Prämienentwurf -> nachvollziehbare Prüfung -> begründete Freigabe oder Ablehnung.
+- Rückzahlungen erzeugen neue negative Korrekturbeträge. Frühere Freigaben bleiben erhalten.
+- Persönliche Beraterkonten anlegen, sperren und reaktivieren; Leitungsrechte bleiben
+  eine Aufgabe der Datenbankadministration.
+- JSON-/CSV-Export, Druckansicht und Änderungsverlauf.
+
+PRÄMIENBEISPIEL (KONFIGURIERBARE ÜBUNGSREGEL, KEINE FERTIGE LOHNRICHTLINIE)
+
+Realisierte Marge je nicht storniertem Auftrag:
+  max(Auftragswert - Kosten, 0) x min(Nettozahlung / Auftragswert, 1)
+Nettozahlung = Zahlung abzüglich Erstattung, mindestens 0.
+Prämientopf = realisierte Marge x konfigurierter Prozentsatz.
+Beispiel: 10 % Topf; 30 % Erstkontakt, 20 % Qualifizierung, 50 % Abschluss.
+Fehlende Beiträge und Rundungsreste bleiben als „unverteilt“ sichtbar.
+Neue Abrechnung = aktueller Anspruch minus bereits freigegebene Beträge je Person.
+Die Geschäftsführung entscheidet; es gibt keine automatische Lohnauszahlung.
+Der Lead-Score aus Sergiis Kern ist ausdrücklich keine Prämiengrundlage.
+
+TESTDATEN UND GRENZEN
+
+Die 40 vorhandenen fiktiven Gespräche von fünf Beratern sind geladen. Projektakten
+bleiben zunächst getrennt, damit die vorgesehenen Dubletten und Widersprüche geprüft
+werden können. Deshalb ist die Anzahl der Akten noch nicht die Anzahl fachlich
+bereinigter Verkaufschancen. Ein Auftrag dient zusätzlich als fiktives Zahlungsbeispiel.
+Bei der ersten Importprüfung erzeugte unbenutzte Firmenplatzhalter bleiben gespeichert;
+die 40 Gesprächsprojekte wurden den passenden echten Unternehmen zugeordnet.
+
+Kontakte sind in dieser Version projektbezogen. Eine automatische globale Verschmelzung
+von Personen, echte Mailbox-/Kalendersynchronisierung, Rechnungswesen, Lohnabrechnung,
+automatische Trainerbuchung und eine Voll-PWA mit Offline-Erstanmeldung sind nicht enthalten.
+Terminexport und E-Mail-Entwürfe funktionieren ohne diese externen Integrationen.
+Freitext-KI, Karten-OCR und echte Provider-Recherche müssen mit eigenen Zugängen noch
+fachlich/live geprüft werden. Die lokale Daten-/Rechte-/Workflow-Kette ist bereits geprüft.
+
+TECHNISCHE RECHTE
+
+crm_owner     besitzt die lokalen CRM- und Kernobjekte; nur Einrichtung/Migration.
+crm_app       beschränkte Anwendungsrolle; keine Schemaänderung, keine Audit-Änderung.
+crm_agent     nur lesende Datenrechte; keine Anmeldungstabellen, keine Schreibrechte.
+crm_capture   Sergiis Capture-Rolle nach seinem Grant-Skript.
+crm_worker    Sergiis Worker-/E-Mail-Funktionsrechte.
+crm_status    Sergiis eingeschränkte Status-Funktionsrechte.
+crm_operator  gesonderte Betriebs-/Wiederholungsrechte; nicht im Frontend.
+
+Das zusätzliche Schema crm enthält persönliche Konten, Sitzungen, typisierte Datensätze,
+Projektbeteiligungen, unveränderlichen Verlauf, Wiederholungsschutz und eine Outbox.
+Datensatzrechte gelten auch in PostgreSQL. Der Benutzerkontext ist serverseitig signiert;
+die Agent-Rolle kann sich durch SET crm.actor_id keine andere Identität geben.
+Alle fachlichen Änderungen erfolgen in Transaktionen, Eingaben als SQL-Parameter.
+Nur der vertrauenswürdige CRM-Dienst erhält INTERNAL_KEY und die Schreibverbindung.
+Der Agent bekommt ausschließlich die getrennte Leseverbindung bzw. den Lese-Endpunkt.
+
+NEU AUFBAUEN
+
+Voraussetzungen: Docker Desktop und Node.js 22+.
+Die ZIP-Datei enthält keine lokalen Passwörter und keine bestehenden Docker-Volumes.
+In einem neuen Ordner:
+  node src/setup.mjs
+  docker compose --profile local-core up -d --build
+  node src/local-core-setup.mjs
+  docker compose up -d app
+  docker compose exec -T app node src/seed.mjs
+  docker compose exec -T app node src/repair-demo.mjs
+
+Die lokale n8n-Testinstanz verwendet das auf diesem Rechner vorhandene Image
+n8nio/n8n:2.40.7-09b3ce6-pc. Für einen anderen Rechner ein verfügbares, kompatibles
+n8n-Image in compose.yaml wählen und den Integrationstest dort wiederholen.
+SQL-Dateien werden beim ersten leeren PostgreSQL-Volume automatisch in Namensreihenfolge
+ausgeführt. Bei bestehendem Volume werden neue SQL-Dateien nicht automatisch nachgezogen.
+
+SPÄTER AUF NEON
+
+Für die lokale Version brauchst du keine Neon-Credentials. Für den Umzug schon:
+1. Separates Neon-Testprojekt oder separaten Branch verwenden.
+2. Owner/Migrationszugang zur Einrichtung; Sergiis vorhandene Neon-Struktur zuerst vergleichen.
+   Seine Quellskripte sind hier unverändert kopiert, kein Export des aktuellen Neon-Zustands.
+3. Nur Struktur übernehmen. Lokale Testkonten, fiktive Aufträge und simulierte E-Mail-Zustände
+   nicht als echte Geschäftsdaten übernehmen. Frische Rollen/Passwörter und Kontextschlüssel setzen.
+4. CRM-Schema 001, 003–007 einrichten. 002 und 008 sind lokale private Bootstrap-Dateien:
+   NICHT als Produktions-Credentials verwenden. crm.private_settings.context_key muss den
+   neuen serverseitigen INTERNAL_KEY enthalten. Leitungszugang gezielt neu anlegen.
+5. Sergiis Schema/Migration und seine Grant-Skripte mit getrennten Zielrollen anwenden,
+   soweit nicht bereits vorhanden. Keine zwei Worker-Installationen unabsichtlich auf dieselbe
+   Warteschlange schalten.
+6. DATABASE_URL und AGENT_DATABASE_URL im CRM-Dienst auf die richtigen Neon-Verbindungen
+   umstellen, TLS mit Zertifikatsprüfung verwenden. Die Schreib- und Leserolle bleiben getrennt.
+7. Die inaktiven Dateien workflows/01–09 importieren und die neuen Credentials zuordnen.
+   In 05–09 die interne CRM-Dienstadresse anpassen. X-CRM-Internal-Key nur serverseitig hinterlegen.
+8. CORE_BASE_URL auf die gewählte n8n-Instanz + /webhook setzen; CORE_MODE auf live setzen.
+   CORE_KEY muss zur neuen Header-Auth-Credential der CRM-Kernkopien passen.
+9. Erst in der isolierten Zielumgebung prüfen. Für echte Recherche/KI/Resend gültige
+   Provider-Credentials und einen absichtlich gewählten Berichtsempfänger verwenden.
+   Der ursprüngliche Berichtsempfänger in CRM-02 wurde zur Kernbewahrung NICHT verändert.
+10. Für mehrere echte Geräte den CRM-Dienst unter einer HTTPS-Adresse bereitstellen,
+    PUBLIC_ORIGIN korrekt setzen und die HTML-Verbindung darauf einstellen.
+    Eine Neon-Datenbank allein ersetzt den Anwendungsdienst nicht.
+
+Keine Datenbankpasswörter gehören ins HTML. Die spätere Aufteilung in zwei HTML-Oberflächen
+ändert nichts an den serverseitigen Rollen und Berechtigungen.

@@ -1,0 +1,227 @@
+TRAIN TODAY – ONBOARDING MIT DAUERHAFTEN DATEN
+Stand 29.10.2026
+
+ÖFFNEN
+Koordinator: http://localhost:3010/
+HR-Anmeldung: http://localhost:5173/login
+Mitarbeiterportal: http://localhost:5173/dashboard
+Lokale E-Mails: http://localhost:8025/
+Konzept und Präsentationshilfe: http://localhost:3010/konzept
+
+Verwende deinen bestehenden HR-Zugang (z. B. juri.hr). Es gibt kein neues Passwort.
+Zuerst im HR-Portal anmelden; danach im Koordinator auf „Ich bin angemeldet“ klicken.
+Für HR und Mitarbeiter getrennte Browserprofile oder private Fenster nutzen.
+
+AKTIVER PROGRAMMORDNER
+C:\Users\jurib\Desktop\Clowtester\uebung\Onboarding-Koordinator
+START-ONBOARDING.cmd startet die bereits vorhandenen lokalen Dienste und den Koordinator.
+Die vorherige Version unter Desktop\N8N\onboarding-koordinator bleibt als Rückfallkopie.
+Deren START.ps1 verweist jetzt auf die neue Version. Nicht deren alte Compose-Datei starten.
+
+SO TESTEST DU DEN GESAMTABLAUF
+1. Im HR-Portal einen Mitarbeiter anlegen. Bestehender HR-Onboarding-Workflow bleibt erhalten.
+2. Im Koordinator „Neues Onboarding“ anklicken und den vorhandenen HR-Mitarbeiter auswählen.
+   Name, private Mail, Abteilung, Rolle und Startdatum kommen aus dem HR-Datensatz.
+   Führungskraft ergänzen. Firmen-Mail darf fehlen. Führungsverantwortung ausdrücklich prüfen.
+3. Vorbereitung starten. Feste Regeln wählen 20 allgemeine Aufgaben bzw. 33 für Marketing
+   ohne Führungsverantwortung. Die KI entwirft nur den Begrüßungstext.
+4. Plan, Fristen und Text prüfen; freigeben oder mit Begründung zurückgeben.
+   Der Prüfername kommt aus der echten HR-Anmeldung, nicht aus einem frei eingegebenen Namen.
+5. Aufgaben bearbeiten: Zuständigkeit, offen / in Bearbeitung / blockiert / erledigt,
+   Kommentar, Nachweis und optional freigegebener Schulungs- oder Dokumentlink.
+   „Erledigt“ verlangt eine Bestätigung; eine Kontoanforderung ist noch keine Freischaltung.
+6. Unter „Umsetzung & Nachweise“ Begrüßung und IT-Auftrag ausdrücklich in Mailpit senden.
+   Derselbe Nachrichtentyp wird pro Fall nur einmal angelegt. Es gibt keinen echten Versand.
+7. Mit dem verknüpften Mitarbeiterkonto im Portal anmelden: Aufgaben, Schulungen,
+   Dokumentlinks sowie Abteilung und Führungskraft öffnen. Eine Mitarbeiter-Rückmeldung
+   wird HR zur Prüfung vorgelegt. Mitarbeiter können keine HR-Aufgaben freigeben.
+8. Koordinator und Mailpit neu starten: Fälle, Entscheidungen, Kommentare und Mails bleiben.
+
+WAS AN DIE EIGENE FIRMA ANGEPASST WURDE
+- Slack-Konto -> Zugang zum Mitarbeiterportal.
+- Notion-Konto -> persönlicher Workspace und Dokumentbereich.
+- Slack-Team -> Marketing-Teamzuordnung im Portal.
+- Notion-Brand-Link -> freigegebener Dokumentlink im Workspace.
+- Slack-Vorstellung -> Aufgabe zur Vorstellung im Portal (noch kein automatisch veröffentlichter Beitrag).
+- Personio im Katalog -> lokale HR-Akte. Kein externer Personio-Anschluss wird behauptet.
+- Firmen-Mail -> IT-Auftrag; keine automatische Google-Workspace-Kontoanlage.
+Original-PDF bleibt eine unveränderte Übersetzung der Aufgabenquelle.
+
+DAUERHAFTE SPEICHER
+Koordinator: eigene PostgreSQL-17-Datenbank im Volume
+train-today-onboarding_coordinator-data.
+Tabellen: coordinator_cases (versionierter Aufgabenplan im JSON-Dokument),
+coordinator_events (Änderungsverlauf), coordinator_mail (lokale Mail-Aufträge und Inhalte).
+Keine automatischen 24-Stunden-/30-Fälle-Löschungen mehr.
+Mailpit: SQLite unter /data/mailpit.db im Volume wbs-onboarding-local_mailpit-data.
+Keine automatische Begrenzung auf 500 Nachrichten. 24 frühere Nachrichten konnten aus
+alter lokaler Mailpit-Datenhaltung wiederhergestellt werden.
+HR-Datenbank: bestehendes Volume bleibt bestehen, keine neue Mitarbeiterkopie angelegt.
+
+Stop/Start, Restart und Container-Neuerstellung erhalten die benannten Volumes.
+Manuelles Löschen einer Nachricht oder eines Volumes löscht weiterhin Daten.
+Kein „docker compose down -v“, kein „destroy --confirm-delete-local-data“ verwenden.
+Backups mit backup.py erstellen; die Sicherungen enthalten personenbezogene Daten und
+Aktivierungslinks. Sie bleiben unter .local-backup und gehören nicht in GitHub.
+
+SICHERUNG / WIEDERHERSTELLUNG
+backup.py sichert PostgreSQL mit pg_dump und kopiert die Mailpit-Datenbank nach kurzem
+Anhalten der Mailbox; danach wird sie wieder gestartet. Die anderen Dienste laufen weiter.
+Die SQL-Dateien können in eine leere isolierte PostgreSQL-Datenbank eingespielt werden.
+Mailpit muss für das Zurückspielen seiner Datenbank gestoppt sein. Vor jeder Wiederherstellung
+bestehende Daten sichern. Keine Sicherung ungeprüft über eine laufende Datenbank schreiben.
+Das Passwort für die neue Datenbank steht lokal in .env und wird nicht veröffentlicht.
+
+N8N-ZUORDNUNG
+Koordinator verwendet die zwei vorhandenen Train-Today-Workflows auf Port 5678:
+http://localhost:5678/workflow/iR52oRyEoMWakIj9 – Vorbereitung
+http://localhost:5678/workflow/V4fgFJOFdFtqYUjA – HR-Entscheidung
+Die aktuellen Exporte liegen in workflows/prepare.json und decision.json
+(jeweils unter dem Schlüssel workflow); zusätzliche direkt importierbare Dateien:
+workflows/Train-Today-01-Vorbereitung.json und Train-Today-02-HR-Entscheidung.json.
+Sticky Notes erläutern Grenzen, Rollen und Speicherung. Der bestehende KI-Zugang bleibt.
+Der separate WBS-HR-Workflow auf Port 5681 wird weiterhin vom HR-Backend verwendet.
+Andere Messe-, CRM- oder Projektmanager-Workflows wurden nicht geändert.
+
+ABGABE
+Der Prototyp deckt einen begrenzten Prozess ab: Auswahl und Planung aus den Checklisten,
+KI-Textentwurf, menschliche Freigabe, nachweisbare Aufgaben und lokale Zustellung.
+AUTO/HITL/HOTL/HUMAN, Annahmen und Grenzen sind im Katalog und Konzept dokumentiert.
+HOTL kennzeichnet bei externen Diensten das Automatisierungspotenzial, nicht schon aktive
+SaaS-Aktionen. Beide Teammitglieder sollten Architektur, einen Erfolgsfall und einen
+Fehler-/Rückgabefall in etwa sieben Minuten erklären können.
+
+BEKANNTE GRENZEN
+- Neue HR-Mitarbeiter werden bewusst im Koordinator ausgewählt; kein automatischer Fallstart.
+- Eigenständige Fälle ohne HR-Verknüpfung erscheinen nicht im Mitarbeiterportal.
+- Externe Konten, Kalender, Schulungsdienste und der separate Projektmanager werden nicht
+  automatisch provisioniert oder synchronisiert. HR/IT bestätigen deren Umsetzung manuell.
+- Keine Lebensläufe oder Verträge im Koordinator hochladen; diese bleiben im HR-Prozess.
+- Ein Dokumentlink ersetzt kein Dokumentenmanagement. HR darf nur freigegebene Links teilen.
+- Ändert sich der Plan nach Rückgabe, wird ein neuer Durchlauf angelegt; bestehende Historie bleibt.
+- Der Koordinator verwendet einen aktiven Prozess. PostgreSQL-Sperre verhindert zwei parallele
+  Besitzer. Ein während Neustart laufender n8n-Auftrag wird als unterbrochen markiert;
+  vor neuem Start n8n prüfen. Keine blinde Wiederholung.
+- Mailstatus „unklar“ bedeutet: Mailpit prüfen; keine automatische Wiederholung mit Duplikatrisiko.
+- Mailpit ist lokal und ohne öffentliche Freigabe. Die neuen Funktionen sind kein Produktivbetrieb.
+
+ROLLBACK
+Nur den Koordinator stoppen, nicht die Volumes löschen. Originalcode und Workflows sind in
+.local-backup gesichert; die vorherige Anwendung liegt unter Desktop\N8N\onboarding-koordinator.
+Vor einem Workflow-Rollback die beiden IDs vergleichen und nur diese zurückspielen.
+Portal-Dateien Portal-before.tsx und nginx-before.conf sowie hr-compose-before.yaml liegen
+in .local-backup. Bei Rücknahme der Portal-Erweiterung nur den Web-Container neu bauen.
+Die dauerhafte Mailpit-Konfiguration beibehalten, damit Nachrichten nicht wieder flüchtig werden.
+
+
+WORKSPACE, AUFGABEN UND TEAM-CHAT – Erweiterung 29.10.2026
+HR: http://localhost:5173/hr mit dem bisherigen HR-Konto (juri.hr).
+Systemadministration: mit Jonas (jonas) anmelden. Sein bestehendes Passwort gilt weiter.
+Mitarbeiter: mit dem eigenen Konto anmelden. Keine neuen Passwörter erforderlich.
+
+Das große Willkommensfeld wurde für alle Mitarbeiterkonten entfernt.
+Unter „Alles an einem Ort / Deine Bereiche“ stehen Unternehmensregeln, Meine Zugänge,
+Mein Team und Aufgaben bereit. Die Bereiche funktionieren auch ohne eigenen freigegebenen
+Plan; persönliche Aufgaben erscheinen nach Verknüpfung und HR-Freigabe im Koordinator.
+
+Aufgaben sind zunächst nach Mitarbeiter in Kacheln zusammengefasst. Die Kachel zeigt Name,
+Anzahl, erledigte/offene Schritte und Fortschritt. Anklicken öffnet bzw. schließt die Liste.
+HR kann nach HR/Fachbereich, IT oder allen Zuständigkeiten filtern. Bei Tim: 20 Aufgaben,
+davon 14 HR/Fachbereich und 6 IT. HR sieht den Gesamtplan; Jonas darf IT-Aufgaben bearbeiten.
+Mitarbeiter sehen ausschließlich die persönlichen Schritte ihres verknüpften Plans.
+Status, Kommentare, Nachweise und freigegebene Links werden im bestehenden Koordinator
+gepflegt und erscheinen unmittelbar in beiden Oberflächen. Mitarbeiter melden Erledigung
+zur Prüfung; sie bestätigen keine HR- oder IT-Freigabe selbst.
+
+Meine Zugänge zeigt den eigenen aktiven Portalzugang und die aus der Abteilung abgeleiteten
+Anforderungen. Neue HR-Mitarbeiter erhalten die Anforderungen in derselben DB-Transaktion.
+Unter „Zugänge verwalten“ kann Jonas Benutzername, Anmeldeseite, Status und Nachweis erfassen.
+Externe Konten werden dadurch nicht automatisch angelegt. Keine Passwörter im Portal speichern.
+Unternehmensregeln: acht ausgearbeitete Grundsätze mit dauerhaft gespeicherter Lesebestätigung.
+Mein Team: vorhandene Kollegen derselben Abteilung, keine privaten E-Mail-Adressen oder HR-Akten.
+
+Rechts unten: „Team-Chat“. Unter Kontakte einen Mitarbeiter wählen und direkt anschreiben.
+Enter sendet, Umschalt+Enter fügt einen Zeilenumbruch ein. Ungelesene Nachrichten erhalten
+ einen Zähler. Im offenen Chat werden neue Nachrichten alle drei Sekunden geladen.
+Nur Systemadministration sieht „+ / Neue Gruppe“ und darf Gruppen anlegen. Gruppenname und
+Teilnehmer auswählen; der Ersteller ist automatisch Mitglied. HR hat keinen Sonderzugriff
+auf fremde Chats. Nachrichten und Lesestand bleiben in der lokalen PostgreSQL-Datenbank.
+Die aktuelle Chat-Version unterstützt Text, Direktchats, Gruppen und ältere Nachrichten.
+Dateianhänge, Anrufe, externe Teams-Anbindung und nachträgliche Gruppenverwaltung sind nicht
+Bestandteil dieser Version. Nachrichten gehen nicht per E-Mail an Mitarbeiter.
+
+Technik: HR-Migrationen 004_workspace.sql und 005_chat.sql; nur additive Tabellen.
+Workspace: workspace_permissions, company_rules, rule_acknowledgements, employee_accesses,
+access_events. Chat: chat_conversations, chat_members, chat_messages.
+/api/workspace/* und /api/chat/* verwenden die bestehende Sitzung und CSRF-Prüfung.
+/coordinator/workspace/tasks projiziert dieselben Aufgaben, keine zweite Checklisten-Kopie.
+Die IT-Berechtigung wird ausdrücklich für Jonas vergeben, nicht automatisch für die ganze
+Abteilung oder jeden Mitarbeiter mit einem selbst eingegebenen Rollentitel.
+
+Vor Änderung: Sicherung .local-backup/backup-20261029-201620.
+Bei Rücknahme der Erweiterung zuerst die betroffenen App-Quellen zurücksetzen und API/Web/
+Koordinator neu bauen; die neuen Tabellen und Volumes dürfen erhalten bleiben. Bestehende
+Daten nicht durch eine alte Sicherung überschreiben, wenn neuere Eingaben erhalten werden sollen.
+Keine Änderung an n8n-Workflows, CRM, Messe-Hub oder Projektmanager in dieser Erweiterung.
+
+
+TRAIN TODAY ONBOARD – GESCHÄFTSLEITUNG & INTEGRIERTER HR-PROZESS (29.10.2026)
+Der Produktname in Portal, Anmeldung und Zugangskarte lautet Train Today Onboard.
+Mit Mara Winter (leitung) anmelden: zusätzlicher Menüpunkt „Team & Fristen“.
+Auch HR kann diese Übersicht öffnen; andere Mitarbeiter und IT erhalten keinen Gesamtzugriff.
+Die Leitungsberechtigung ist in Migration 006_leadership.sql ausdrücklich für leitung hinterlegt.
+Keine privaten E-Mails, HR-Dokumente, Begrüßungstexte oder Kommentare in der Leitungs-API.
+
+Statistik:
+- Erledigungsquote = erledigte Aufgaben / alle Aufgaben freigegebener Pläne.
+- Pünktlichkeitsquote = fristgerecht erledigte Aufgaben / erledigte Aufgaben mit belegtem
+  Abschlussdatum und Frist. Unbekannte Daten zählen nicht als pünktlich oder verspätet.
+- Offene Aufgaben mit Frist vor dem heutigen Berliner Kalendertag sind überfällig.
+- Eintritt innerhalb der nächsten 7 Tage oder bereits erfolgt + offene Vorbereitung bis
+  zum Eintritt bzw. noch fehlende Planfreigabe: Hinweis „Vorbereitung offen“.
+- Abschlussdatum wird bei tatsächlichem Wechsel auf erledigt gespeichert. Wieder öffnen
+  entfernt den aktuellen Abschlusszeitpunkt; die protokollierte Historie bleibt bestehen.
+- Historische Zeitpunkte werden nur aus vorhandenen Zustandskommentaren bzw. dem erfolgreichen
+  Pflichtfeld-Prüflauf abgeleitet. Die Quote ist keine automatische Leistungs- oder Prämienentscheidung.
+- Abteilung als Zuständigkeit ist keine einzelne Person. HR/IT können konkrete Namen zuweisen.
+
+Neuen Fall vollständig im HR-Portal starten:
+1. http://localhost:5173/hr/new öffnen.
+2. Neuen Mitarbeiter anlegen oder vorhandenen HR-Mitarbeiter auswählen.
+3. Führungskraft, optionale Firmen-E-Mail und Führungsverantwortung ergänzen.
+4. „Mitarbeiter & Onboarding starten“: neue Stammdaten werden gespeichert, bestehende
+   Mitarbeiter verknüpft. Ein bestehender gültiger Fall wird wieder geöffnet.
+5. Unter /hr/onboarding/:id Verarbeitung und n8n-Schritte verfolgen, Entwurf prüfen,
+   freigeben oder mit Begründung zurückgeben.
+6. Begrüßung und IT-Auftrag bei Bedarf aus dieser Seite anfordern (weiterhin nur Mailpit).
+7. Aufgaben im Portal bearbeiten; über „HR-Akte und Kontoeinladung öffnen“ die separate
+   Kontofreigabe/Einladung durchführen. Bestehender HR-Verarbeitungsworkflow bleibt erhalten.
+
+Die Oberfläche auf Port 3010 ist zur Bedienung dieses Ablaufs nicht mehr erforderlich.
+Der Koordinator-Container bleibt als Backend hinter /coordinator/ notwendig; nicht stoppen.
+Bei teilweise fehlgeschlagenem Start wird deutlich angezeigt, dass der Mitarbeiter bereits
+ gespeichert ist. Erneuter Versuch bzw. Auswahl des bestehenden Mitarbeiters vermeidet Duplikate.
+Sicherung vor dieser Erweiterung: .local-backup/backup-20261029-213933; Quellkopien leadership-backup/.
+
+29.10.2026 – Aufgaben mit konkreten Aktionen
+-----------------------------------------
+Unter Aufgaben & Zuständigkeiten / Meine Aufgaben gibt es jetzt aufgabenspezifische Formulare:
+- HR-Akte: Anschrift, Vertragsart, Urlaubstage, Notfallkontakt und Prüfbestätigung; nur HR sieht diese Angaben.
+- Lebenslauf / Vertrag: geprüfter Dokumentname und geschützter Dokumentlink. Die Datei selbst bleibt im vorhandenen Dokumentenspeicher; kein Datei-Upload in dieses Portal.
+- Zugänge: Benutzername, Anmeldeseite und Berechtigungsumfang eintragen, tatsächliche Einrichtung bestätigen und „Zugang freischalten & weitergeben“ drücken. Der Eintrag wird in employee_accesses gespeichert und erscheint beim zugeordneten Mitarbeiter unter Meine Zugänge. Externe Konten werden nicht durch diese Funktion angelegt. Passwörter nicht in Aufgaben schreiben.
+- IT-Konten kann nur die Systemadministration freigeben. HR darf die Benefit- und Marketing-Zugänge seines Verantwortungsbereichs dokumentieren. HR-Statusänderungen umgehen die IT-Prüfung nicht.
+- Portal / persönliche Bereiche: vorhandenen aktivierten Mitarbeiter-Account prüfen; fehlende Konten zuerst über den HR-Einladungsprozess aktivieren.
+- Termine: Datum, Dauer, Ort, Teilnehmende und Ziel speichern; beim Mitarbeiter sichtbar, als .ics-Datei übernehmbar. Keine automatische externe Kalenderbuchung.
+- Schulungen / Unterlagen: Titel, Link und Arbeitsauftrag bereitstellen. Das setzt die Aufgabe auf In Bearbeitung. Mitarbeiter meldet den Abschluss zurück; zuständige Person prüft und bestätigt anschließend. Geänderte Lerninhalte setzen die frühere Rückmeldung zurück.
+- Versand: Versandanschrift, Dienst, Datum und Beleg speichern. Mitarbeiter sieht Versandinformationen, nicht die intern hinterlegte Anschrift.
+- Führungskraft: konkreten Empfänger auswählen und Information im persönlichen Aufgabenbereich bereitstellen. Keine externe E-Mail.
+- Buddy und Vorstellung: abgestimmte Angaben im persönlichen Aufgabenbereich bereitstellen.
+- Begrüßung: Versand im Onboarding-Fall öffnen; Erledigt erst bei bestätigter Annahme durch die lokale Mailbox.
+- Abschlussprüfungen: bleiben gesperrt, solange ihre Voraussetzungen offen sind.
+
+Ein unverbundener Fall muss zunächst einem passenden bestehenden HR-Mitarbeiter zugeordnet werden. Name, Abteilung und Eintrittsdatum müssen übereinstimmen; ein bestehender aktiver Fall verhindert eine doppelte Zuordnung. Personenbezogene Weitergabe ohne Zuordnung ist gesperrt.
+
+Der Abmeldeknopf steht dauerhaft unten in der Seitenleiste. Die Navigation darüber scrollt separat, auch bei kleinen Fenstern.
+
+Speicherung: Aufgabenangaben in coordinator_cases.document, Änderungsverlauf in coordinator_events; Zugänge zusätzlich in employee_accesses / access_events. Die Übergabe zwischen den beiden Datenbanken ist wiederholbar: kein doppelter Zugang oder identischer Freischaltungsnachweis. Scheitert die Übertragung, wird die Aufgabe nicht abgeschlossen. Bei einem Ausfall zwischen erfolgreichem Zugangsspeichern und Aufgabenspeichern kann der Zugang bereits sichtbar sein; erneutes Speichern gleicht den Aufgabenstatus ab.
+Sicherung vor Änderung: .local-backup/backup-20261029-223058

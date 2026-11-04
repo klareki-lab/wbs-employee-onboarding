@@ -1,0 +1,113 @@
+name: train-today-handover
+services:
+  hr-db:
+    image: postgres:17-bookworm
+    environment:
+      POSTGRES_USER: onboarding
+      POSTGRES_DB: onboarding
+      POSTGRES_PASSWORD: ${HR_DB_PASSWORD:?Run configure}
+    volumes: [hr-data:/var/lib/postgresql/data]
+    healthcheck:
+      test: [CMD-SHELL, pg_isready -U onboarding -d onboarding]
+      interval: 3s
+      retries: 30
+  coordinator-db:
+    image: postgres:17-bookworm
+    environment:
+      POSTGRES_USER: coordinator
+      POSTGRES_DB: coordinator
+      POSTGRES_PASSWORD: ${COORDINATOR_DB_PASSWORD:?Run configure}
+    volumes: [coordinator-data:/var/lib/postgresql/data]
+    healthcheck:
+      test: [CMD-SHELL, pg_isready -U coordinator -d coordinator]
+      interval: 3s
+      retries: 30
+  crm-db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: crm_owner
+      POSTGRES_DB: crm
+      POSTGRES_PASSWORD: ${CRM_DB_PASSWORD:?Run configure}
+    volumes: [crm-data:/var/lib/postgresql/data]
+    healthcheck:
+      test: [CMD-SHELL, pg_isready -U crm_owner -d crm]
+      interval: 3s
+      retries: 30
+  mailpit:
+    image: axllent/mailpit:v1.27
+    command: [--database, /data/mailpit.db, --max, '0', --disable-version-check]
+    ports: ['127.0.0.1:${MAILPIT_PORT:-8025}:8025']
+    volumes: [mail-data:/data]
+  api:
+    build: {context: ./onboard, dockerfile: backend/Dockerfile}
+    environment:
+      NODE_ENV: development
+      DATABASE_URL: postgresql://onboarding:${HR_DB_PASSWORD}@hr-db:5432/onboarding
+      APP_ORIGIN: http://localhost:${WEB_PORT:-5173}
+      INTERNAL_API_SECRET: ${INTERNAL_API_SECRET}
+      DEPARTMENTS_API_SECRET: ${DEPARTMENTS_API_SECRET}
+      N8N_ONBOARDING_WEBHOOK_SECRET: ${N8N_ONBOARDING_WEBHOOK_SECRET}
+      N8N_ONBOARDING_WEBHOOK_URL: ${HR_WEBHOOK_URL:-}
+      SMTP_MODE: capture
+      SMTP_HOST: mailpit
+      SMTP_PORT: '1025'
+      SMTP_FROM: onboarding@example.invalid
+      SYSTEM_ADMIN_EMAIL: ${SYSTEM_ADMIN_EMAIL:-}
+      CRM_LEADERSHIP_URL: http://crm:3080
+      CRM_LEADERSHIP_KEY: ${LEADERSHIP_BRIDGE_KEY}
+    ports: ['127.0.0.1:${API_PORT:-3009}:3001']
+    depends_on: {hr-db: {condition: service_healthy}}
+  web:
+    build: {context: ./onboard, dockerfile: deploy/local/frontend.Dockerfile}
+    ports: ['127.0.0.1:${WEB_PORT:-5173}:8080']
+    depends_on: [api, onboarding-dashboard]
+  onboarding-dashboard:
+    build: ./coordinator
+    environment:
+      PORT: '3010'
+      PORTAL_ORIGIN: http://localhost:${WEB_PORT:-5173}
+      PGHOST: coordinator-db
+      PGUSER: coordinator
+      PGPASSWORD: ${COORDINATOR_DB_PASSWORD}
+      PGDATABASE: coordinator
+      HR_API: http://api:3001/api
+      SMTP_HOST: mailpit
+      N8N_MCP_CONFIG: /config/mcp.json
+      N8N_MCP_URL: http://n8n:5678/mcp-server/http
+    volumes: ['./.private/mcp.json:/config/mcp.json:ro']
+    ports: ['127.0.0.1:${COORDINATOR_PORT:-3010}:3010']
+    depends_on: {coordinator-db: {condition: service_healthy}, api: {condition: service_started}}
+  crm:
+    build: ./crm
+    environment:
+      DATABASE_URL: postgres://crm_app:${CRM_APP_PASSWORD}@crm-db:5432/crm
+      AGENT_DATABASE_URL: postgres://crm_agent:${CRM_AGENT_PASSWORD}@crm-db:5432/crm
+      INTERNAL_KEY: ${CRM_INTERNAL_KEY}
+      PUBLIC_ORIGIN: http://localhost:${CRM_PORT:-3080}
+      LEADERSHIP_BRIDGE_KEY: ${LEADERSHIP_BRIDGE_KEY}
+      LEADERSHIP_CRM_LOGIN: leitung
+      LEADERSHIP_AI_KEY: ${LEADERSHIP_AI_KEY:-}
+      LEADERSHIP_AI_BASE_URL: ${LEADERSHIP_AI_BASE_URL:-https://router.requesty.ai/v1}
+      LEADERSHIP_AI_MODEL: ${LEADERSHIP_AI_MODEL:-openai/gpt-4.1-mini}
+      AI_API_KEY: ${AI_API_KEY:-}
+      AI_BASE_URL: ${AI_BASE_URL:-https://router.requesty.ai/v1}
+      AI_MODEL: ${AI_MODEL:-openai/gpt-4.1-mini}
+      CORE_MODE: disconnected
+    ports: ['127.0.0.1:${CRM_PORT:-3080}:3080']
+    depends_on: {crm-db: {condition: service_healthy}}
+  n8n:
+    image: n8nio/n8n:2.41.7
+    profiles: [automation]
+    ports: ['127.0.0.1:${N8N_PORT:-5681}:5678']
+    environment:
+      N8N_ENCRYPTION_KEY: ${N8N_ENCRYPTION_KEY}
+      N8N_SECURE_COOKIE: 'false'
+      N8N_DIAGNOSTICS_ENABLED: 'false'
+      GENERIC_TIMEZONE: Europe/Berlin
+    volumes: [n8n-data:/home/node/.n8n]
+volumes:
+  hr-data:
+  coordinator-data:
+  crm-data:
+  mail-data:
+  n8n-data:

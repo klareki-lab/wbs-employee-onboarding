@@ -1,0 +1,155 @@
+TRAIN TODAY CRM – LOKALE API V1
+Stand: 24.10.2026
+
+Basis: http://localhost:3080
+Alle Verbindungen laufen lokal. Das ist ein Testvertrag für den späteren
+n8n-CRM-Adapter; keine Verbindung zu einem externen CRM ist eingerichtet.
+
+ANMELDUNG
+POST /api/login
+JSON: {"login":"persoenlicher_benutzer","password":"…"}
+Antwort: {"token":"…","user":{"id":"…","role":"…",…}}
+Danach: Authorization: Bearer <token>
+Tokens gelten acht Stunden. POST /api/logout entwertet die Sitzung.
+Keine Zugangsdaten im Browser-HTML oder Workflow-Export hinterlegen.
+Für länger laufende produktive Integrationen später einen getrennten, eng
+berechtigten Servicezugang ergänzen; aktuell gelten persönliche Sitzungen.
+
+LESEN
+GET /api/v1/companies
+GET /api/v1/contacts
+GET /api/v1/opportunities
+GET /api/v1/tasks
+GET /api/v1/activities
+GET /api/v1/offers
+GET /api/v1/orders
+GET /api/v1/tickets
+GET /api/v1/appointments
+
+Parameter:
+  limit=50              1–100, Standard 50
+  offset=0              nichtnegative Ganzzahl
+  project_id=<uuid>     optional, filtert untergeordnete Datensätze
+  updated_since=<ISO>   optional, einschließlich dieses Zeitpunkts
+
+Antwort:
+{
+  "api_version":"1", "resource":"contacts", "total":12,
+  "limit":50, "offset":0, "next_offset":null,
+  "records":[{
+    "id":"uuid", "kind":"contact", "project_id":"uuid",
+    "owner_id":"uuid", "data":{"name":"…","email":"…"},
+    "version":1, "created_at":"ISO", "updated_at":"ISO"
+  }]
+}
+
+Die Sortierung erfolgt nach updated_at und id. Offset-Seiten sind keine
+eingefrorene Momentaufnahme: bei parallelen Änderungen für Synchronisation
+ein Zeitfenster überlappend erneut lesen und nach id/version zusammenführen.
+Berater sehen nur freigegebene Projekte; die Leitungsrolle sieht Teamdaten.
+Private gespeicherte Ansichten bleiben auch gegenüber anderen Rollen privat.
+
+GET /api/v1/campaign-recipients?campaign_id=<uuid>
+Nur Geschäftsführung. Ermittelt zum Abfragezeitpunkt geeignete Empfänger
+einer vorhandenen Kampagne mit Beachtung von Sperren, Einwilligungen und
+Dublettenausschluss. Antwort enthält records, total, generated_at, sent:false.
+Es wird nichts versendet. Vor einem späteren tatsächlichen Versand neu prüfen.
+
+SCHREIBEN
+POST /api/command
+JSON immer mit request_id (UUID). Bei Wiederholung nach Verbindungsfehler
+dieselbe ID und unveränderte Nutzdaten verwenden. Neue ID = neue Fachaktion.
+Gleiche ID mit anderen Nutzdaten: HTTP 409.
+
+Neuanlage:
+{
+ "request_id":"uuid", "action":"create", "kind":"task",
+ "project_id":"projekt-uuid",
+ "data":{"title":"Bedarf klären","due_at":"2026-11-02T09:00:00Z",
+         "status":"open","assignee_id":"benutzer-uuid"}
+}
+
+Änderung:
+{
+ "request_id":"uuid", "action":"update", "id":"datensatz-uuid",
+ "version":1, "data":{"status":"done","result":"Kunde erreicht"},
+ "reason":"Ergebnis des Rückrufs"
+}
+Eine veraltete version ergibt HTTP 409; dann neu lesen und fachlich abgleichen.
+Nicht freigegebene Felder und ungültige Referenzen werden zurückgewiesen.
+
+NEUE FACHFELDER
+company: customer_number, customer_status (prospect/customer/partner/inactive),
+street, postal_code, city, country, tags (kommagetrennt), account_note.
+project: expected_value (netto EUR), probability (0–100), expected_close (Datum),
+forecast_category (pipeline/best_case/commit/omit), next_step, tags.
+contact: department, newsletter_status (unknown/opted_in/opted_out), consent_at,
+consent_note, do_not_contact (boolean), review_at.
+offer: title, reference, status, cost, valid_until, payment_terms, introduction,
+lines:[{description,quantity,unit_price,discount,tax_rate}].
+amount, tax_total und gross_total werden bei Positionen serverseitig berechnet.
+ticket: title, description, status, priority, assignee_id, due_at, category,
+resolution. Gelöst/geschlossen nur mit Lösungsvermerk.
+appointment: title, starts_at, ends_at, location, status, description, assignee_id.
+document: title, url (http/https), description, category.
+campaign (Leitung): title, status, industry, tag, description, starts_at, ends_at.
+task_template (Leitung): title, description, steps:[{title,days:0…365}].
+saved_view (persönlich): title, module:"projects", filters:{q,stage,owner,event,risk,mode}.
+
+ZUSÄTZLICHE AKTIONEN
+apply_template: project_id, template_id, base_date (ISO)
+  Erzeugt Aufgaben für die anfragende Person relativ zum Startdatum.
+revise_offer: id (Angebots-ID)
+  Erzeugt einen neuen Entwurf mit revision_of und neuer Angebotsnummer.
+convert_offer: id (angenommenes Angebot), reference (eindeutige Auftragsnummer),
+  reason. Nur Leitung; einmaliger Auftrag, noch ohne Zahlung.
+
+FÜR EUREN SEPARATEN MESSE-WORKFLOW
+1. Vertrauenswürdig anmelden; Anbieterzugänge ausschließlich in n8n/Backend.
+2. Vorhandene Firmen und Kontakte lesen und Zuordnung prüfen.
+3. CRM-ID des passenden Kundenprojekts verwenden. Ähnliche Namen sind kein
+   ausreichender Grund, Datensätze automatisch zusammenzuführen.
+4. Gespräch über die vorhandene capture-Fachaktion oder gezielt genehmigte
+   Folgeaufgaben anlegen; request_id außerhalb des Retry-Schritts erzeugen.
+5. CRM-IDs speichern. Bei 409 Daten neu lesen; bei 401 neu anmelden;
+   bei 400/403/404 fachlich prüfen; bei vorübergehenden Fehlern begrenzt wiederholen.
+
+Wichtig: Die bestehende capture-Aktion übergibt an Sergiis lokalen Kern.
+Nicht dieselbe Notiz zusätzlich über eine zweite Capture-Schleife zurücksenden.
+Ein späterer Adapter muss Herkunft und externe IDs führen und Rückkopplungen
+vermeiden. Ein produktiver bidirektionaler Adapter ist hier noch nicht enthalten.
+
+Der KI-Agent behält seine reine Leserolle. Die Schreib-API führt nur konkrete,
+validierte Fachaktionen des angemeldeten Benutzers aus. Es gibt keinen SQL-Endpunkt.
+
+PROJEKTE UND ZEITEN – ERGÄNZUNG 25.10.2026
+GET /api/v1/project-overview
+  Alle zugänglichen, nicht zusammengeführten Projekte mit Plan-/Iststunden,
+  gewichtetem Fortschritt, Teamanteilen, Arbeitspaketen, Zeiten und Kommentaren.
+  Antwort: {api_version:"1",projects:[...],generated_at:ISO}.
+  Diese Gesamtübersicht hat keine Pagination; nur für den lokalen Umfang gedacht.
+GET /api/v1/work-items
+GET /api/v1/time-entries
+GET /api/v1/project-comments
+  Die drei Datensatzlisten nutzen die oben beschriebene Pagination/Filterung.
+
+POST /api/command nutzt auch hier request_id, Session und fachliche Berechtigungen.
+project_plan: project_id, version, data:{delivery_status,delivery_start,
+  delivery_end,delivery_goal}; Status not_planned/planned/active/on_hold/completed/cancelled.
+work_save: project_id, optional id+version, data:{title,description,planned_hours,
+  assignee_id,starts_on,ends_on,progress,status,blocked_reason,predecessor_id}.
+  Status planned/in_progress/blocked/done/cancelled. Zuständige Nicht-Projektleiter
+  dürfen nur progress, status und blocked_reason ändern.
+project_comment: project_id, data:{text,work_item_id?}. Autor aus der Sitzung.
+time_save: project_id, optional id+version+reason für Korrekturen,
+  data:{description,work_item_id?,started_at,ended_at,break_minutes,billable}.
+  Zeiten als ISO-Zeitstempel mit Zeitzone senden; billable ist boolean.
+timer_start: project_id, data:{description,work_item_id?,billable}.
+timer_stop: id, version, optional ended_at, break_minutes.
+time_submit / time_withdraw: id, version.
+time_void: id, version, reason.
+time_decide: id, version, approve (boolean), reason. Nur andere Leitungsperson.
+Alle personenbezogenen Zeitbuchungen betreffen die angemeldete Person;
+ein Import darf keinen frei gewählten Fremdautor einsetzen.
+Diese Typen lassen sich nicht über generische create/update-Aktionen umgehen.
+Der lesende KI-Agent erhält weder Zeitnachweise noch Projektkommentare.
