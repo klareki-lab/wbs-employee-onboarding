@@ -15,6 +15,7 @@ const callback = z.discriminatedUnion("status", [
       team_lead: field,
       necessary_accounts: z.array(field).max(30),
       welcome_message: z.string().min(1).max(4000),
+      personal_plan: z.string().trim().min(1).max(4000).optional(),
     })
     .strict(),
   z

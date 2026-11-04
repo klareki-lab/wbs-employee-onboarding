@@ -77,3 +77,21 @@ export interface ApiErrorBody {
   message?: string;
 }
 export interface ApiEnvelope<T> { data: T; pagination?: Pagination }
+
+// Phase 2: additive response types. V1.0.0 types and contracts stay unchanged.
+export type TaskStatus = 'pending' | 'in_progress' | 'awaiting_hr' | 'completed';
+export type ExecutionMode = 'FULL_AUTOMATION' | 'HITL' | 'HOTL' | 'ENTIRELY_HUMAN';
+export interface OnboardingTask {
+  id: string; employee_id: string; template_key: string; template_version: number;
+  title: string; detail: string; assignee_role: 'hr' | 'employee';
+  assigned_to: string | null; due_date: string; needs_hr_approval: boolean;
+  execution_mode: ExecutionMode; sort_order: number; source_verified: boolean;
+  status: TaskStatus; version: number; approved_by: string | null;
+  approved_at: string | null; completed_at: string | null;
+  created_at: string; updated_at: string;
+}
+export interface TaskListPayload {
+  tasks: OnboardingTask[];
+  summary: { total: number; completed: number; waiting_for_hr: number; source_verified: boolean };
+}
+export interface TaskMutation { task: OnboardingTask; replayed: boolean }

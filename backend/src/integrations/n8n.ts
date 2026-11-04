@@ -28,6 +28,11 @@ export async function dispatchOne() {
     )
   ).rows[0];
   try {
+    const taskOutline = (await pool.query(
+      `SELECT template_key,title,assignee_role,due_date::text AS due_date,needs_hr_approval
+       FROM onboarding_tasks WHERE employee_id=$1 ORDER BY sort_order,template_key`,
+      [job.employee_id],
+    )).rows;
     const response = await fetch(config.N8N_ONBOARDING_WEBHOOK_URL!, {
       method: "POST",
       redirect: "error",
@@ -40,6 +45,7 @@ export async function dispatchOne() {
       body: JSON.stringify({
         event: "employee.onboarding.requested",
         job_id: job.id,
+        task_outline: taskOutline,
         employee_id: employee.id,
         ...Object.fromEntries(
           Object.entries(employee).filter(([k]) => k !== "id"),

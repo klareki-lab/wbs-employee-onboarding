@@ -9,6 +9,7 @@ import { browserOrigin } from "../middleware/auth.js";
 import { errors } from "../middleware/errors.js";
 import { auth } from "../routes/auth.js";
 import { hr } from "../routes/hr.js";
+import { tasks } from "../routes/tasks.js";
 import { invitations } from "../routes/invitations.js";
 import { internal } from "../routes/internal.js";
 import { n8nConfigured } from "../integrations/n8n.js";
@@ -56,6 +57,7 @@ export function createApp() {
   app.use("/api", auth);
   app.use("/api/invitations", invitations);
   app.use("/api/internal", internal);
+  app.use("/api", tasks);
   app.use("/api", hr);
   app.use((req, res) => {
     res.status(404).json({ error: { code: "NOT_FOUND" } });

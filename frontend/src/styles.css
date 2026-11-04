@@ -16,3 +16,28 @@
 @media(max-width:700px){.app-shell{display:block}.sidebar{position:fixed;width:268px;left:0;top:0;bottom:0;height:100dvh;transform:translateX(-110%);transition:transform .16s ease;box-shadow:10px 0 30px rgba(0,0,0,.13)}.sidebar-open{transform:translateX(0)}.mobile-only{display:grid}.mobile-scrim{display:block;position:fixed;inset:0;background:rgba(18,26,45,.45);z-index:25;border:0;width:100%;height:100%}.topbar{height:67px;padding:0 19px}.topbar-left{gap:9px}.topbar-section{font-size:10px}.topbar-privacy{display:none}.main-content{padding:27px 18px 40px}.page-header{align-items:flex-start}.page-header h1{font-size:25px}.page-subtitle{line-height:1.55}.header-action .button{font-size:0;padding:10px;min-width:43px}.header-action .button svg{width:19px;height:19px}.kpi-grid{gap:11px}.metric-card{padding:17px;min-height:153px}.metric-number{font-size:26px;margin-top:13px}.metric-title{font-size:11.5px}.metric-detail{font-size:10px}.panel-heading{align-items:flex-start;flex-direction:column;gap:15px}.panel-controls{width:100%}.search-box{flex:1;min-width:0}.form-side{grid-template-columns:1fr}.footer{padding:17px 18px}.welcome-banner{min-height:270px}.welcome-content{padding:29px 25px}.welcome-content h2{font-size:28px}.welcome-art{opacity:.18;right:-120px}.portal-grid{grid-template-columns:1fr}.portal-card{min-height:213px}.information-grid{grid-template-columns:1fr}.auth-top{height:73px}.auth-top-label{font-size:10px}.auth-bottom{gap:15px}.auth-card{padding:28px 23px}.auth-page-inner{padding:35px 16px 55px}}
 @media(max-width:470px){.kpi-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.metric-card{padding:14px 13px}.metric-icon{width:36px;height:36px}.metric-title{font-size:11px}.metric-detail{font-size:9.5px}.page-header{gap:10px}.page-header h1{font-size:23px}.employee-form{padding:22px 19px 0}.form-grid{grid-template-columns:1fr;gap:19px}.form-footer{justify-content:stretch}.form-footer .button{flex:1}.panel-controls{flex-direction:column;align-items:stretch}.panel-heading{padding:20px 16px}.detail-body{padding:17px}.approval-actions{flex-direction:column}.approval-actions .button{width:100%}.auth-bottom span{display:none}}
 @media(prefers-reduced-motion:reduce){*,*:before,*:after{animation:none!important;transition:none!important;scroll-behavior:auto!important}}
+
+/* Phase 2 task cards. Appended to existing styles.css by the overlay installer. */
+.phase2-board { margin-top: 26px; }
+.phase2-heading { display:flex; align-items:center; justify-content:space-between; gap:16px; flex-wrap:wrap; }
+.phase2-inner { padding: 24px; }
+.phase2-summary { font-weight:700; margin:0 0 16px; }
+.phase2-demo { background:rgba(230,163,41,.12); border:1px solid rgba(165,111,12,.3); border-radius:10px; padding:12px 15px; line-height:1.5; }
+.phase2-task { padding:17px 0; border-top:1px solid var(--border, #e3e6ee); display:flex; gap:20px; justify-content:space-between; align-items:flex-start; }
+.phase2-task:first-of-type { margin-top:12px; }
+.phase2-task-main { min-width:0; flex:1; }
+.phase2-task-main p { margin:8px 0 10px; opacity:.85; line-height:1.5; }
+.phase2-task-title { display:flex; gap:12px; align-items:baseline; }
+.phase2-task-title h3 { font-size:1rem; margin:0; }
+.phase2-key { font-size:.82rem; opacity:.6; white-space:nowrap; font-variant-numeric:tabular-nums; }
+.phase2-meta { display:flex; flex-wrap:wrap; gap:8px 16px; font-size:.82rem; opacity:.9; }
+.phase2-state { font-weight:700; }
+.phase2-state-completed { color:#22744a; }
+.phase2-state-awaiting_hr { color:#936218; }
+.phase2-actions { display:flex; flex-direction:column; gap:8px; min-width:160px; }
+.phase2-actions button { white-space:normal; }
+.phase2-error { color:#b42318; }
+.phase2-success { color:#22744a; }
+@media(max-width:720px){ .phase2-inner{padding:16px} .phase2-task{flex-direction:column;gap:12px} .phase2-actions{flex-direction:row;flex-wrap:wrap;min-width:0} }
+
+.phase2-plan { white-space:pre-wrap; line-height:1.7; }
